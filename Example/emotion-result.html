@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Emotional Landscape</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000;
+    overflow: hidden;
+    font-family: 'DM Mono', monospace;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  #canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  #ui {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  #title-block {
+    position: absolute;
+    top: 48px;
+    left: 56px;
+    pointer-events: all;
+  }
+
+  #title-block h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 52px);
+    font-weight: 400;
+    color: rgba(255,255,255,0.92);
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 30px rgba(0,0,0,0.8);
+  }
+
+  #title-block .subtitle {
+    font-size: 11px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  #score-panel {
+    position: absolute;
+    bottom: 48px;
+    left: 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    animation: fadeIn 0.6s forwards;
+  }
+
+  .score-label {
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    width: 76px;
+  }
+
+  .score-bar-bg {
+    width: 100px;
+    height: 2px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .score-num {
+    font-size: 10px;
+    color: rgba(255,255,255,0.35);
+    width: 14px;
+    text-align: right;
+  }
+
+  #reset-btn {
+    position: absolute;
+    top: 48px;
+    right: 56px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.5);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    cursor: pointer;
+    pointer-events: all;
+    transition: all 0.2s;
+    border-radius: 2px;
+    text-decoration: none;
+  }
+
+  #reset-btn:hover {
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.8);
+  }
+
+  #dominant-label {
+    position: absolute;
+    bottom: 48px;
+    right: 56px;
+    text-align: right;
+  }
+
+  #dominant-label .dom-word {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(18px, 2.5vw, 32px);
+    color: rgba(255,255,255,0.7);
+    text-shadow: 0 0 40px currentColor;
+  }
+
+  #dominant-label .dom-sub {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+    margin-top: 4px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  #cursor-trail {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 100;
+    mix-blend-mode: screen;
+    transition: width 0.1s, height 0.1s;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="ui">
+  <div id="title-block">
+    <h1 id="main-title">Your emotional<br>landscape</h1>
+    <p class="subtitle">Generated from your scores</p>
+  </div>
+
+  <div id="score-panel"></div>
+
+  <a id="reset-btn" href="emotion-kiosk.html">← new session</a>
+
+  <div id="dominant-label">
+    <div class="dom-word" id="dom-word"></div>
+    <div class="dom-sub">dominant emotion</div>
+  </div>
+</div>
+
+<div id="cursor-trail"></div>
+
+<script>
+const EMOTIONS = {
+  anger:     { color: [255, 45, 20],    shape: 'shard',    label: 'anger' },
+  sadness:   { color: [40, 100, 220],   shape: 'drop',     label: 'sadness' },
+  happiness: { color: [255, 210, 30],   shape: 'circle',   label: 'happiness' },
+  peace:     { color: [80, 210, 160],   shape: 'orb',      label: 'peace' },
+  love:      { color: [255, 100, 160],  shape: 'heart',    label: 'love' },
+  fear:      { color: [100, 30, 160],   shape: 'flicker',  label: 'fear' },
+  disgust:   { color: [100, 130, 50],   shape: 'blob',     label: 'disgust' },
+  confusion: { color: [160, 80, 220],   shape: 'fragment', label: 'confusion' }
+};
+
+function getScores() {
+  const params = new URLSearchParams(window.location.search);
+  const scores = {};
+  for (const key of Object.keys(EMOTIONS)) {
+    scores[key] = Math.min(10, Math.max(0, parseFloat(params.get(key) || '0')));
+  }
+  if (Object.values(scores).every(v => v === 0)) {
+    scores.anger = 9; scores.sadness = 6; scores.happiness = 4;
+    scores.peace = 2; scores.love = 7; scores.fear = 3;
+    scores.disgust = 1; scores.confusion = 5;
+  }
+  return scores;
+}
+
+const scores = getScores();
+
+function blendBgColor(scores) {
+  let r = 0, g = 0, b = 0, total = 0;
+  for (const [key, val] of Object.entries(scores)) {
+    if (val === 0) continue;
+    const [er, eg, eb] = EMOTIONS[key].color;
+    r += er * val; g += eg * val; b += eb * val;
+    total += val;
+  }
+  if (total === 0) return [10, 10, 20];
+  return [r / total, g / total, b / total].map(v => Math.max(0, Math.min(255, v * 0.18)));
+}
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W, H, mouse = { x: -9999, y: -9999 };
+let particles = [];
+let bgColor = blendBgColor(scores);
+let time = 0;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+class Particle {
+  constructor(emotion) {
+    this.emotion = emotion;
+    const E = EMOTIONS[emotion];
+    this.color = [...E.color];
+    this.shape = E.shape;
+    this.reset();
+  }
+
+  reset() {
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    const score = scores[this.emotion];
+    const speedMult = 0.3 + score * 0.15;
+
+    if (this.emotion === 'anger') {
+      this.vx = (Math.random() - 0.5) * speedMult * 4;
+      this.vy = (Math.random() - 0.5) * speedMult * 4;
+      this.size = 4 + Math.random() * score * 2.5;
+      this.life = 0.6 + Math.random() * 0.4;
+      this.decay = 0.004 + Math.random() * 0.006;
+      this.rotation = Math.random() * Math.PI * 2;
+      this.rotSpeed = (Math.random() - 0.5) * 0.15;
+    } else if (this.emotion === 'sadness') {
+      this.vx = (Math.random() - 0.5) * 0.3;
+      this.vy = 0.4 + Math.random() * speedMult;
+      this.size = 3 + Math.random() * 8;
+      this.life = 0.8 + Math.random() * 0.2;
+      this.decay = 0.002 + Math.random() * 0.003;
+    } else if (this.emotion === 'happiness') {
+      const angle = Math.random() * Math.PI * 2;
+      const spd = speedMult * 2 + Math.random() * 2;
+      this.vx = Math.cos(angle) * spd;
+      this.vy = Math.sin(angle) * spd - speedMult;
+      this.size = 4 + Math.random() * 8;
+      this.life = 0.7 + Math.random() * 0.3;
+      this.decay = 0.005 + Math.random() * 0.005;
+      this.bounce = true;
+    } else if (this.emotion === 'peace') {
+      const angle = Math.random() * Math.PI * 2;
+      this.vx = Math.cos(angle) * 0.3;
+      this.vy = Math.sin(angle) * 0.3 - 0.1;
+      this.size = 6 + Math.random() * 14;
+      this.life = 0.4 + Math.random() * 0.4;
+      this.decay = 0.001 + Math.random() * 0.002;
+      this.pulse = Math.random() * Math.PI * 2;
+    } else if (this.emotion === 'love') {
+      const angle = Math.random() * Math.PI * 2;
+      this.vx = Math.cos(angle) * 0.8;
+      this.vy = Math.sin(angle) * 0.8 - 0.5;
+      this.size = 5 + Math.random() * 12;
+      this.life = 0.6 + Math.random() * 0.4;
+      this.decay = 0.003 + Math.random() * 0.003;
+      this.targetX = mouse.x;
+      this.targetY = mouse.y;
+    } else if (this.emotion === 'fear') {
+      this.vx = (Math.random() - 0.5) * speedMult * 5;
+      this.vy = (Math.random() - 0.5) * speedMult * 5;
+      this.size = 2 + Math.random() * 6;
+      this.life = 0.5 + Math.random() * 0.5;
+      this.decay = 0.008 + Math.random() * 0.008;
+    } else if (this.emotion === 'disgust') {
+      this.vx = (Math.random() - 0.5) * 0.4;
+      this.vy = 0.2 + Math.random() * 0.6;
+      this.size = 8 + Math.random() * 14;
+      this.life = 0.5 + Math.random() * 0.4;
+      this.decay = 0.001 + Math.random() * 0.002;
+      this.wobble = Math.random() * Math.PI * 2;
+    } else if (this.emotion === 'confusion') {
+      const angle = Math.random() * Math.PI * 2;
+      this.vx = Math.cos(angle) * speedMult * 1.5;
+      this.vy = Math.sin(angle) * speedMult * 1.5;
+      this.size = 5 + Math.random() * 12;
+      this.life = 0.6 + Math.random() * 0.4;
+      this.decay = 0.003 + Math.random() * 0.004;
+      this.rotation = Math.random() * Math.PI * 2;
+      this.rotSpeed = (Math.random() - 0.5) * 0.25;
+      this.hueShift = 0;
+    }
+    this.alpha = this.life;
+    this.initialSize = this.size;
+  }
+
+  update() {
+    const score = scores[this.emotion];
+
+    if (this.emotion === 'anger') {
+      this.vx += (Math.random() - 0.5) * 0.3;
+      this.vy += (Math.random() - 0.5) * 0.3;
+      this.rotation += this.rotSpeed;
+    } else if (this.emotion === 'sadness') {
+      this.vy += 0.015;
+      this.vx *= 0.99;
+    } else if (this.emotion === 'happiness') {
+      this.vy -= 0.02;
+      if (this.bounce) {
+        if (this.x < 0 || this.x > W) this.vx *= -0.8;
+        if (this.y < 0 || this.y > H) this.vy *= -0.8;
+      }
+    } else if (this.emotion === 'peace') {
+      this.pulse += 0.02;
+      this.vx = Math.sin(this.pulse * 0.7) * 0.2;
+      this.vy = Math.cos(this.pulse * 0.5) * 0.2 - 0.05;
+    } else if (this.emotion === 'love') {
+      const dx = mouse.x - this.x, dy = mouse.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > 5) {
+        this.vx += (dx / dist) * 0.04 * (score / 10);
+        this.vy += (dy / dist) * 0.04 * (score / 10);
+      }
+      this.vx *= 0.96; this.vy *= 0.96;
+    } else if (this.emotion === 'fear') {
+      const dx = mouse.x - this.x, dy = mouse.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 200) {
+        this.vx -= (dx / dist) * 0.8;
+        this.vy -= (dy / dist) * 0.8;
+      }
+      this.vx += (Math.random() - 0.5) * 0.5;
+      this.vy += (Math.random() - 0.5) * 0.5;
+      this.vx *= 0.95; this.vy *= 0.95;
+    } else if (this.emotion === 'disgust') {
+      this.wobble += 0.04;
+      this.vx = Math.sin(this.wobble) * 0.4;
+      this.vy += 0.008;
+    } else if (this.emotion === 'confusion') {
+      this.rotation += this.rotSpeed;
+      this.vx += (Math.random() - 0.5) * 0.2;
+      this.vy += (Math.random() - 0.5) * 0.2;
+      this.vx *= 0.97; this.vy *= 0.97;
+      this.hueShift = (this.hueShift || 0) + 2;
+    }
+
+    this.x += this.vx;
+    this.y += this.vy;
+    this.life -= this.decay;
+    this.alpha = this.life;
+
+    if (this.life <= 0 || this.x < -200 || this.x > W + 200 || this.y < -200 || this.y > H + 200) {
+      this.reset();
+    }
+  }
+
+  draw() {
+    const a = Math.max(0, this.alpha);
+    let [r, g, b] = this.color;
+
+    if (this.emotion === 'confusion' && this.hueShift !== undefined) {
+      const shift = this.hueShift;
+      r = (r + Math.sin(shift * 0.05) * 60 + 255) % 255;
+      b = (b + Math.cos(shift * 0.04) * 80 + 255) % 255;
+    }
+
+    ctx.save();
+    ctx.globalAlpha = a * 0.85;
+
+    if (this.emotion === 'anger') {
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.rotation);
+      ctx.beginPath();
+      const s = this.size;
+      ctx.moveTo(0, -s);
+      ctx.lineTo(s * 0.3, -s * 0.1);
+      ctx.lineTo(s, s * 0.2);
+      ctx.lineTo(0, s * 0.6);
+      ctx.lineTo(-s * 0.7, s * 0.1);
+      ctx.closePath();
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fill();
+    } else if (this.emotion === 'sadness') {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
+      ctx.moveTo(this.x, this.y + this.size * 0.5);
+      ctx.quadraticCurveTo(this.x - this.size * 0.5, this.y + this.size * 1.5, this.x, this.y + this.size * 2);
+      ctx.quadraticCurveTo(this.x + this.size * 0.5, this.y + this.size * 1.5, this.x, this.y + this.size * 0.5);
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fill();
+    } else if (this.emotion === 'happiness') {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 0.6, 0, Math.PI * 2);
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fill();
+    } else if (this.emotion === 'peace') {
+      const pulse = Math.sin(this.pulse) * 0.2 + 0.8;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * pulse, 0, Math.PI * 2);
+      const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * pulse);
+      grad.addColorStop(0, `rgba(${r},${g},${b},0.6)`);
+      grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      ctx.fillStyle = grad;
+      ctx.fill();
+    } else if (this.emotion === 'love') {
+      ctx.translate(this.x, this.y);
+      const s = this.size * 0.5;
+      ctx.beginPath();
+      ctx.moveTo(0, s * 0.5);
+      ctx.bezierCurveTo(-s, -s * 0.5, -s * 2, s, 0, s * 2);
+      ctx.bezierCurveTo(s * 2, s, s, -s * 0.5, 0, s * 0.5);
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fill();
+    } else if (this.emotion === 'fear') {
+      const flicker = Math.random() > 0.3 ? 1 : 0.3;
+      ctx.globalAlpha = a * flicker;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fill();
+    } else if (this.emotion === 'disgust') {
+      ctx.translate(this.x, this.y);
+      ctx.scale(1, 1.4);
+      ctx.beginPath();
+      ctx.arc(0, 0, this.size * 0.6, 0, Math.PI * 2);
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fill();
+    } else if (this.emotion === 'confusion') {
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.rotation);
+      const s = this.size;
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const angle = (i / 5) * Math.PI * 2;
+        const x = Math.cos(angle) * s;
+        const y = Math.sin(angle) * s;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = `rgb(${r},${g},${b})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+}
+
+function spawnParticles() {
+  particles = [];
+  const MAX_PER_EMOTION = 80;
+  for (const [key, val] of Object.entries(scores)) {
+    if (val === 0) continue;
+    const count = Math.floor((val / 10) * MAX_PER_EMOTION);
+    for (let i = 0; i < count; i++) {
+      const p = new Particle(key);
+      p.x = Math.random() * W;
+      p.y = Math.random() * H;
+      p.life = Math.random();
+      particles.push(p);
+    }
+  }
+}
+
+function drawBackground() {
+  const [r, g, b] = bgColor;
+  ctx.fillStyle = `rgba(${r},${g},${b},0.18)`;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function animate() {
+  time++;
+  drawBackground();
+
+  for (const p of particles) {
+    p.update();
+    p.draw();
+  }
+
+  requestAnimationFrame(animate);
+}
+
+function buildScorePanel() {
+  const panel = document.getElementById('score-panel');
+  let delay = 0;
+  for (const [key, val] of Object.entries(scores)) {
+    const [r, g, b] = EMOTIONS[key].color;
+    const row = document.createElement('div');
+    row.className = 'score-row';
+    row.style.animationDelay = `${delay}ms`;
+    row.innerHTML = `
+      <span class="score-label">${key}</span>
+      <div class="score-bar-bg">
+        <div class="score-bar-fill" style="width:0%;background:rgb(${r},${g},${b})"></div>
+      </div>
+      <span class="score-num">${val}</span>
+    `;
+    panel.appendChild(row);
+    delay += 80;
+  }
+  setTimeout(() => {
+    document.querySelectorAll('.score-bar-fill').forEach((bar, i) => {
+      const key = Object.keys(scores)[i];
+      bar.style.width = `${scores[key] * 10}%`;
+    });
+  }, 200);
+}
+
+function setDominant() {
+  let top = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
+  document.getElementById('dom-word').textContent = top[0];
+  const [r, g, b] = EMOTIONS[top[0]].color;
+  document.getElementById('dom-word').style.color = `rgb(${r},${g},${b})`;
+}
+
+document.addEventListener('mousemove', e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+  const trail = document.getElementById('cursor-trail');
+  trail.style.left = (e.clientX - 4) + 'px';
+  trail.style.top = (e.clientY - 4) + 'px';
+  trail.style.background = `rgb(${bgColor.map(v => Math.min(255, v * 5)).join(',')})`;
+});
+
+ctx.fillStyle = `rgb(${bgColor.join(',')})`;
+ctx.fillRect(0, 0, W, H);
+
+spawnParticles();
+buildScorePanel();
+setDominant();
+animate();
+</script>
+</body>
+</html>
