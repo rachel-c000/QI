@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head><title>Confused</title></head>
+<body>
+
+  <h1>Confused</h1>
+  <p>How much confusion are you feeling right now?</p>
+
+  <div>
+    <a href="confusion.html?v=0" onclick="save(0)">0</a>
+    <a href="confusion.html?v=1" onclick="save(1)">1</a>
+    <a href="confusion.html?v=2" onclick="save(2)">2</a>
+    <a href="confusion.html?v=3" onclick="save(3)">3</a>
+    <a href="confusion.html?v=4" onclick="save(4)">4</a>
+    <a href="confusion.html?v=5" onclick="save(5)">5</a>
+    <a href="confusion.html?v=6" onclick="save(6)">6</a>
+    <a href="confusion.html?v=7" onclick="save(7)">7</a>
+    <a href="confusion.html?v=8" onclick="save(8)">8</a>
+    <a href="confusion.html?v=9" onclick="save(9)">9</a>
+    <a href="confusion.html?v=10" onclick="save(10)">10</a>
+  </div>
+
+  <a href="fear.html" id="next" style="display:none">Next →</a>
+
+  <script>
+    function save(val) {
+      sessionStorage.setItem('confused', val);
+      document.getElementById('next').style.display = 'block';
+    }
+  </script>
+
+</body>
+</html>
