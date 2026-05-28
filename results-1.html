@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head><title>Your Result</title></head>
+<body>
+
+  <h1>Your scores</h1>
+  <ul id="scores"></ul>
+  <a href="index.html">Start again</a>
+
+  <script>
+    const emotions = ['anger','sadness','happiness','peace','love','fear','disgust','confusion'];
+    const list = document.getElementById('scores');
+    const params = new URLSearchParams();
+
+    emotions.forEach(e => {
+      const val = sessionStorage.getItem(e) || 0;
+      params.set(e, val);
+      const li = document.createElement('li');
+      li.textContent = e + ': ' + val;
+      list.appendChild(li);
+    });
+
+    // builds the link to your result page with all scores in the URL
+    const link = document.createElement('a');
+    link.href = 'emotion-result.html?' + params.toString();
+    link.textContent = 'See your landscape →';
+    document.body.appendChild(link);
+  </script>
+
+</body>
+</html>

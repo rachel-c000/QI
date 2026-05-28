@@ -6,28 +6,31 @@
   <h1>Fear</h1>
   <p>How much fear are you feeling right now?</p>
 
-  <div>
-    <a href="fear.html?v=0" onclick="save(0)">0</a>
-    <a href="fear.html?v=1" onclick="save(1)">1</a>
-    <a href="fear.html?v=2" onclick="save(2)">2</a>
-    <a href="fear.html?v=3" onclick="save(3)">3</a>
-    <a href="fear.html?v=4" onclick="save(4)">4</a>
-    <a href="fear.html?v=5" onclick="save(5)">5</a>
-    <a href="fear.html?v=6" onclick="save(6)">6</a>
-    <a href="fear.html?v=7" onclick="save(7)">7</a>
-    <a href="fear.html?v=8" onclick="save(8)">8</a>
-    <a href="fear.html?v=9" onclick="save(9)">9</a>
-    <a href="fear.html?v=10" onclick="save(10)">10</a>
+  <video id="video" autoplay playsinline muted width="300" height="300"></video>
+  <p id="status">Hold your card up to the camera</p>
+  <p id="scanned" style="display:none">You chose: <strong id="val"></strong></p>
+
+  <div id="buttons">
+    <a href="#" onclick="confirm(0)">0</a>
+    <a href="#" onclick="confirm(1)">1</a>
+    <a href="#" onclick="confirm(2)">2</a>
+    <a href="#" onclick="confirm(3)">3</a>
+    <a href="#" onclick="confirm(4)">4</a>
+    <a href="#" onclick="confirm(5)">5</a>
+    <a href="#" onclick="confirm(6)">6</a>
+    <a href="#" onclick="confirm(7)">7</a>
+    <a href="#" onclick="confirm(8)">8</a>
+    <a href="#" onclick="confirm(9)">9</a>
+    <a href="#" onclick="confirm(10)">10</a>
   </div>
 
-  <a href="disgust.html" id="next" style="display:none">Next →</a>
-
   <script>
-    function save(val) {
-      sessionStorage.setItem('fear', val);
-      document.getElementById('next').style.display = 'block';
-    }
+    const EMOTION_KEY = 'fear';
+    const NEXT_PAGE = 'disgust.html';
   </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+  <script src="scanner.js"></script>
 
 </body>
 </html>
