@@ -9,8 +9,22 @@
 
 <script>
   document.addEventListener('keydown', function(event) {
-    window.location.href = 'results-1.html';
+    window.location.href = 'results-interactive.html';
   });
+
+function setup() {
+  createCanvas(100, 100, WEBGL);
+
+  describe('A white sphere on a gray background.');
+}
+
+function draw() {
+  background(200);
+
+  orbitControl();
+
+  sphere();
+}
 </script>
     
 </body>

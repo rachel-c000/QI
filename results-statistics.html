@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Your Emotion Chart</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>Your emotional breakdown</h1>
+  <canvas id="pie" width="400" height="400"></canvas>
+  <a href="element.html">Next →</a>
+
+  <script>
+    const labels = ['Anger','Sadness','Happiness','Peace','Love','Fear','Disgust','Confusion'];
+    const keys   = ['anger','sadness','happiness','peace','love','fear','disgust','confusion'];
+    const colors = ['#FF2D14','#2264DC','#FFD71E','#50D2A0','#FF64A0','#641EA0','#6E8C32','#A050DC'];
+
+    const data = keys.map(k => sessionStorage.getItem(k) || 0);
+
+    new Chart(document.getElementById('pie'), {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: colors
+        }]
+      }
+    });
+  </script>
+
+</body>
+</html>

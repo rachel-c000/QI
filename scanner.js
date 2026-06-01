@@ -1,41 +1,49 @@
 let cooldown = false;
 
-navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-  .then(stream => {
+// start the camera
+navigator.mediaDevices.getUserMedia({ video: true })
+  .then(function(stream) {
     document.getElementById('video').srcObject = stream;
+    document.getElementById('status').textContent = 'Hold your card up to the camera';
     startScan();
   })
-  .catch(() => {
+  .catch(function() {
     document.getElementById('status').textContent = 'Camera unavailable — use buttons below';
   });
 
+// scan loop
 function startScan() {
-  const video = document.getElementById('video');
-  const temp = document.createElement('canvas');
-  const ctx = temp.getContext('2d');
+  var video = document.getElementById('video');
+  var canvas = document.createElement('canvas');
+  var ctx = canvas.getContext('2d');
 
-  setInterval(() => {
+  setInterval(function() {
     if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
     if (cooldown) return;
 
-    temp.width = video.videoWidth;
-    temp.height = video.videoHeight;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0);
 
-    const imageData = ctx.getImageData(0, 0, temp.width, temp.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var code = jsQR(imageData.data, imageData.width, imageData.height);
 
     if (code) {
+      console.log('scanned:', code.data);
       try {
-        const val = JSON.parse(code.data).value;
+        var val = JSON.parse(code.data).value;
         if (val >= 0 && val <= 10) {
           confirm(val);
         }
-      } catch(e) {}
+      } catch(e) {
+        console.log('could not parse qr data:', code.data);
+      }
     }
+
   }, 200);
 }
 
+// called by scan or button tap
 function confirm(val) {
   if (cooldown) return;
   cooldown = true;
@@ -46,7 +54,7 @@ function confirm(val) {
   document.getElementById('val').textContent = val;
   document.getElementById('scanned').style.display = 'block';
 
-  setTimeout(() => {
+  setTimeout(function() {
     window.location.href = NEXT_PAGE;
   }, 1500);
 }

@@ -1,0 +1,17 @@
+nav {
+  display: flex;
+  gap: 10px;
+}
+
+nav a {
+  background: #3d3228;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  text-decoration: none;
+}
+
+nav a#active {
+  background: #f5f0d8;
+  color: #3d3228;
+}

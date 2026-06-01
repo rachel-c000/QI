@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head><title>Reflect</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>Reflect</h1>
+  <p id="question"></p>
+
+  <textarea id="comment" rows="6" cols="40" placeholder="Write here..."></textarea>
+  <br>
+
+  <button onclick="sharePublic()">Share publicly</button>
+  <button onclick="sharePrivate()">Keep private</button>
+
+  <p id="feedback" style="display:none"></p>
+  <a href="index.html" id="done" style="display:none">Start again</a>
+
+  <script>
+    const keys = ['anger','sadness','happiness','peace','love','fear','disgust','confusion'];
+    const scores = {};
+    keys.forEach(k => scores[k] = parseInt(sessionStorage.getItem(k)) || 0);
+    const dominant = keys.reduce((a, b) => scores[a] > scores[b] ? a : b);
+
+    const questions = {
+      anger:     'What is making you feel this way? What would help you release it?',
+      sadness:   'What are you grieving or missing right now?',
+      happiness: 'What brought this lightness to you today?',
+      peace:     'What helped you arrive at this stillness?',
+      love:      'Who or what is filling you with this warmth?',
+      fear:      'What feels uncertain or unsafe for you right now?',
+      disgust:   'What has crossed a line for you lately?',
+      confusion: 'What are you trying to figure out right now?'
+    };
+
+    document.getElementById('question').textContent = questions[dominant];
+
+    function sharePublic() {
+      const comment = document.getElementById('comment').value;
+      if (!comment) return;
+
+      // save to localStorage as public
+      // in a real app this would POST to a database
+      const all = JSON.parse(localStorage.getItem('public_comments') || '[]');
+      all.push({ dominant, comment, time: new Date().toISOString() });
+      localStorage.setItem('public_comments', JSON.stringify(all));
+
+      document.getElementById('feedback').textContent = 'Shared publicly.';
+      document.getElementById('feedback').style.display = 'block';
+      document.getElementById('done').style.display = 'block';
+    }
+
+    function sharePrivate() {
+      const comment = document.getElementById('comment').value;
+      if (!comment) return;
+
+      // save to localStorage as private
+      const all = JSON.parse(localStorage.getItem('private_comments') || '[]');
+      all.push({ dominant, comment, time: new Date().toISOString() });
+      localStorage.setItem('private_comments', JSON.stringify(all));
+
+      document.getElementById('feedback').textContent = 'Kept privately.';
+      document.getElementById('feedback').style.display = 'block';
+      document.getElementById('done').style.display = 'block';
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head><title>Your Element</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>Your element</h1>
+  <h2 id="element-name"></h2>
+  <p id="element-desc"></p>
+  <a href="music.html">Next →</a>
+
+  <script>
+    const keys = ['anger','sadness','happiness','peace','love','fear','disgust','confusion'];
+    const scores = {};
+    keys.forEach(k => scores[k] = parseInt(sessionStorage.getItem(k)) || 0);
+    const dominant = keys.reduce((a, b) => scores[a] > scores[b] ? a : b);
+
+    const elements = {
+      anger:     { name: 'Fire',  desc: 'You burn with intensity. Fire transforms everything it touches.' },
+      sadness:   { name: 'Water', desc: 'You run deep. Water holds memory and moves at its own pace.' },
+      happiness: { name: 'Wind',  desc: 'You are light and free. Wind lifts everything around it.' },
+      peace:     { name: 'Earth', desc: 'You are grounded and still. Earth holds space for everything.' },
+      love:      { name: 'Light', desc: 'You radiate warmth. Light finds its way into every corner.' },
+      fear:      { name: 'Storm', desc: 'You carry electricity. Storms are powerful and temporary.' },
+      disgust:   { name: 'Stone', desc: 'You are solid and firm. Stone knows exactly what it will not allow.' },
+      confusion: { name: 'Mist',  desc: 'You are shifting and searching. Mist means clarity is coming.' }
+    };
+
+    document.getElementById('element-name').textContent = elements[dominant].name;
+    document.getElementById('element-desc').textContent = elements[dominant].desc;
+  </script>
+
+</body>
+</html>
