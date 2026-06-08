@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>...</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; height: 100vh; overflow: hidden; }
+    #active-video {
+      width: 100%;
+      height: 100vh;
+      object-fit: cover;
+      display: block;
+    }
+    .skip-btn {
+      position: fixed;
+      bottom: 32px;
+      right: 40px;
+      font-family: 'Courier Prime', monospace;
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      background: none;
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 8px 20px;
+      cursor: pointer;
+    }
+    .skip-btn:hover { color: #fff; border-color: #fff; }
+  </style>
+</head>
+<body>
+
+  <video id="active-video" autoplay muted playsinline></video>
+  <button class="skip-btn" onclick="goNext()">skip →</button>
+
+  <script>
+    var videoSrc = 'videos/happy.mp4';
+    var nextPage = 'sad.html';
+    var hasNavigated = false;
+
+    function goNext() {
+      if (hasNavigated) return;
+      hasNavigated = true;
+      vid.pause();
+      vid.src = '';
+      vid.load();
+      window.location.replace(nextPage);
+    }
+
+    var vid = document.getElementById('active-video');
+    vid.src = videoSrc;
+    vid.muted = true;
+    vid.load();
+
+    vid.addEventListener('canplay', function() {
+      vid.play().catch(function(err) {
+        console.log('play failed:', err);
+      });
+    });
+
+    vid.addEventListener('ended', goNext);
+
+    vid.addEventListener('error', function() {
+      console.log('video error:', vid.error);
+      setTimeout(goNext, 3000);
+    });
+
+    window.addEventListener('pageshow', function(e) {
+      if (e.persisted) {
+        vid.pause();
+        vid.src = '';
+        window.location.replace(nextPage);
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,11 +1,14 @@
 if (window.location.pathname.includes('video.html')) throw new Error('stop');
 
 var cooldown = false;
+var scanInterval = null;
+var cameraStream = null;
 
 var detector = new AR.Detector();
 
 navigator.mediaDevices.getUserMedia({ video: true })
   .then(function(stream) {
+    cameraStream = stream;
     document.getElementById('video').srcObject = stream;
     document.getElementById('video').play();
     startScan();
@@ -18,9 +21,9 @@ navigator.mediaDevices.getUserMedia({ video: true })
 function startScan() {
   var video  = document.getElementById('video');
   var canvas = document.createElement('canvas');
-var ctx = canvas.getContext('2d', { willReadFrequently: true });
+  var ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-  setInterval(function() {
+  scanInterval = setInterval(function() {
     if (cooldown) return;
     if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
 
@@ -38,8 +41,14 @@ var ctx = canvas.getContext('2d', { willReadFrequently: true });
         choose(id);
       }
     }
-
   }, 200);
+}
+
+function stopEverything() {
+  if (scanInterval) clearInterval(scanInterval);
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(function(track) { track.stop(); });
+  }
 }
 
 function choose(val) {
@@ -59,6 +68,7 @@ function choose(val) {
   sessionStorage.setItem(EMOTION_KEY, val);
 
   setTimeout(function() {
+    stopEverything();
     window.location.href = NEXT_PAGE;
   }, 900);
 }

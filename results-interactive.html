@@ -163,13 +163,14 @@
       z-index: 999 !important;
       box-shadow: 4px 8px 20px rgba(0,0,0,0.28);
     }
-    .tile svg {
-      width: 100%;
-      height: 100%;
-      border-radius: 6px;
-      display: block;
-      pointer-events: none;
-    }
+.tile img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 6px;
+  pointer-events: none;
+  object-fit: contain;
+}
   </style>
 </head>
 <body>
@@ -229,6 +230,17 @@
       disgust:  '#dff0d8'
     };
 
+    var tileImages = {
+  happy: 'images/happy-mahjong.png',
+  sad: 'images/sad-mahjong.png',
+  angry: 'images/angry-mahjong.png',
+  peace: 'images/peace-mahjong.png',
+  love: 'images/love-mahjong.png',
+  confused: 'images/confused-mahjong.png',
+  fear: 'images/fear-mahjong.png',
+  disgust: 'images/disgust-mahjong.png'
+};
+
     /* SVG symbols for each emotion drawn on the tile face */
     function tileSVG(emotion, color) {
       var bg = '#f7f2e4';
@@ -236,10 +248,7 @@
       var symbol = '';
 
       if (emotion === 'happy') {
-        symbol = '<circle cx="31" cy="36" r="14" fill="none" stroke="'+color+'" stroke-width="2.5"/>' +
-          '<path d="M22 38 Q31 48 40 38" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linecap="round"/>' +
-          '<circle cx="26" cy="32" r="2" fill="'+color+'"/><circle cx="36" cy="32" r="2" fill="'+color+'"/>' +
-          '<text x="31" y="70" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="11" fill="'+color+'" font-weight="700">快乐</text>';
+        'images/happy-mahjong.png'
       } else if (emotion === 'sad') {
         symbol = '<circle cx="31" cy="36" r="14" fill="none" stroke="'+color+'" stroke-width="2.5"/>' +
           '<path d="M22 44 Q31 35 40 44" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linecap="round"/>' +
@@ -315,38 +324,45 @@
 
     /* safe spawn zone — avoid UI corners */
 var spawnGrid = (function() {
-  var cols = Math.floor((window.innerWidth - 160) / 90);
-  var rows = Math.floor((window.innerHeight - 260) / 110);
-  var slots = [];
-  for (var r = 0; r < rows; r++) {
-    for (var c = 0; c < cols; c++) {
-      slots.push({
-        x: 80 + c * 90 + Math.random() * 20,
-        y: 120 + r * 110 + Math.random() * 20
-      });
-    }
-  }
-  // shuffle
-  for (var i = slots.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
-    var tmp = slots[i]; slots[i] = slots[j]; slots[j] = tmp;
-  }
-  var idx = 0;
+  var placed = [];
+  var TW = 62, TH = 84, padding = 16;
+
   return function() {
-    var s = slots[idx % slots.length];
-    idx++;
-    return s;
+    var attempts = 0;
+    var x, y, safe;
+
+    do {
+      safe = true;
+      x = 80 + Math.random() * (window.innerWidth  - 240);
+      y = 120 + Math.random() * (window.innerHeight - 260);
+
+      for (var i = 0; i < placed.length; i++) {
+        var dx = x - placed[i].x;
+        var dy = y - placed[i].y;
+        var dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < TW + padding) {
+          safe = false;
+          break;
+        }
+      }
+      attempts++;
+    } while (!safe && attempts < 200);
+
+    placed.push({ x: x, y: y });
+    return { x: x, y: y };
   };
 })();
 
     keys.forEach(function(k) {
       var count = scores[k];
       for (var i = 0; i < count; i++) {
-        var pos = randPos();
+        var pos = spawnGrid();
         var el = document.createElement('div');
         el.className = 'tile';
-        el.innerHTML = tileSVG(k, colors[k]);
-        var rotation = (Math.random() - 0.5) * 30;
+        el.innerHTML =
+  '<img src="' + tileImages[k] + '" alt="' + k + '">';
+        var rotation = (Math.random() - 0.5) * 90;
+if (Math.abs(rotation) < 10) rotation += rotation < 0 ? -12 : 12;
         el.style.left = pos.x + 'px';
         el.style.top  = pos.y + 'px';
         el.style.transform = 'rotate('+rotation+'deg)';
