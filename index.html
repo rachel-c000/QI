@@ -1,22 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Homepage</title>
+  <meta charset="UTF-8">
+  <title>Qi 氣</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body onclick="window.location.href='instructions.html'">
 
-    <h1>QI</h1>
-    <h2>How is your energy today?</h2>
-    <h3>[Press any button to continue]</h3>
-    
-<script>
-  document.addEventListener('keydown', function(event) {
-    window.location.href = 'instructions.html';
-  });
-</script>
+  <div>
+    <div class="landing-logo"><h1>Qi</h1></div>
+    <div class="landing-kanji"><h2>氣(qi)</h2></div>
+    <div class="landing-prompt"><h3>how is your energy today?</h3></div>
+    <div class="landing-cta"><h4>press any button to continue</h4></div>
+  </div>
+
+  <script>
+    document.addEventListener('keydown', function() {
+      window.location.href = 'instructions.html';
+    });
+  </script>
 
 </body>
 </html>

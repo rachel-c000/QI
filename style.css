@@ -1,3 +1,37 @@
+@font-face {
+  font-family: 'OldCenturyStyleRegular';
+  src: url(fonts/Century\ Old\ Style\ Regular.otf);
+}
+@font-face {
+  font-family: 'OldCenturyStyleBold';
+  src: url(fonts/Century\ Old\ Style\ Std\ Bold.otf);
+}
+
+@font-face {
+  font-family: 'BatangChe';
+  src: url(fonts/BatangChe.ttf);
+}
+
+h1 {
+  font-family: 'OldCenturyStyleBold', sans-serif;
+  font-size: 150px;
+}
+
+h2 {
+  font-family: 'OldCenturyStyleBold', sans-serif;
+  font-size: 30px;
+}
+
+h3 {
+  font-family: 'OldCenturyStyleRegular', sans-serif;
+  font-size: 30px;
+}
+
+h4 {
+  font-family: 'BatangChe', sans-serif;
+  font-size: 20px;
+}
+
 nav {
   display: flex;
   gap: 10px;
@@ -15,3 +49,59 @@ nav a#active {
   background: #f5f0d8;
   color: #3d3228;
 }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      cursor: pointer;
+      background-color: #FFF9D2;
+    }
+
+    .landing-logo {
+      font-family: 'Fraunces', serif;
+      font-size: 120px;
+      font-weight: 700;
+      color: #3d3228;
+      line-height: 1;
+      margin-bottom: 4px;
+      position: absolute;
+      top: 150px;
+      left: 500px;
+    }
+
+    .landing-sub {
+      font-size: 14px;
+      color: #3d3228;
+      margin-bottom: 4px;
+    }
+
+    .landing-kanji {
+      font-size: 13px;
+      color: #3d3228;
+      opacity: 0.6;
+      margin-bottom: 40px;
+      position: absolute;
+      top: 280px;
+      right: 750px;
+    }
+
+    .landing-prompt {
+      font-size: 18px;
+      color: #3d3228;
+      margin-bottom: 8px;
+      position: absolute;
+      bottom: 370px;
+      left: 500px;
+    }
+
+    .landing-cta {
+      font-size: 14px;
+      color: #3d3228;
+      opacity: 0.6;
+      position: absolute;
+      bottom: 350px;
+      left: 500px;
+    }

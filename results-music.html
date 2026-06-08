@@ -1,90 +1,274 @@
 <!DOCTYPE html>
-<html>
-<head><title>Your Songs</title>
-<link rel="stylesheet" href="style.css"></head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Qi — Music</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="emotion-pages.js"></script>
+  <style>
+    body { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; }
+
+    .music-title {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #3d3228;
+      margin-top: 80px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    /* carousel */
+    .carousel {
+      display: flex;
+      align-items: flex-end;
+      gap: 24px;
+      justify-content: center;
+    }
+
+    .album {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .album.side {
+      transform: scale(0.75);
+      opacity: 0.6;
+    }
+
+    .album.center {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    .album-art {
+      width: 200px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      border-radius: 4px;
+    }
+
+    .album.center .album-art {
+      width: 360px;
+      height: 360px;
+      font-size: 80px;
+    }
+
+    .album-title {
+      font-family: 'Fraunces', serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #3d3228;
+      text-align: center;
+    }
+
+    .album-artist {
+      font-size: 11px;
+      color: #3d3228;
+      opacity: 0.6;
+      text-align: center;
+    }
+
+    /* center song info */
+    .center-info {
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    .center-info .big-title {
+      font-family: 'Fraunces', serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: #3d3228;
+    }
+
+    .center-info .big-artist {
+      font-size: 14px;
+      color: #3d3228;
+      opacity: 0.6;
+      margin-top: 4px;
+    }
+
+    /* spotify link bottom right */
+    .spotify-corner {
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      text-align: right;
+    }
+
+    .spotify-corner p {
+      font-size: 13px;
+      color: #3d3228;
+      margin-bottom: 8px;
+    }
+
+    .spotify-corner a {
+      font-size: 12px;
+      color: #3d3228;
+      text-decoration: underline;
+    }
+
+    nav {
+      position: fixed;
+      top: 30px;
+      right: 30px;
+      z-index: 9999;
+    }
+
+      nav a.active {
+  background: #f5f0d8;
+  color: #3d3228;
+  border: 1.5px solid #3d3228;
+}
+
+a img {
+width: 80px;
+position: absolute;
+top: 50px;
+left: 50px;
+}
+  </style>
+</head>
 <body>
 
-  <h1>Songs for your mood</h1>
+<a href="index.html">
+  <img src="images/logo.png" alt="logo">
+</a>
 
-  <div id="carousel">
-    <button onclick="prev()">←</button>
-    <div id="song-display">
-      <p id="song-title"></p>
-      <p id="song-artist"></p>
-    </div>
-    <button onclick="next()">→</button>
+  <nav>
+    <a href="results-interactive.html">landscape</a>
+    <a href="results-chart.html">chart</a>
+    <a href="results-element.html">element</a>
+    <a href="results-music.html" class="active">music</a>
+    <a href="results-comment.html">reflect</a>
+  </nav>
+
+  <div class="music-title" id="music-title">some songs related to your mood</div>
+
+  <div class="carousel" id="carousel"></div>
+
+  <div class="center-info">
+    <div class="big-title" id="big-title"></div>
+    <div class="big-artist" id="big-artist"></div>
   </div>
 
-  <a href="reflect.html">Next →</a>
+  <div class="spotify-corner">
+    <p>add on Spotify</p>
+    <a href="#" id="spotify-link" target="_blank">open in Spotify →</a>
+  </div>
 
   <script>
-    const keys = ['anger','sadness','happiness','peace','love','fear','disgust','confusion'];
-    const scores = {};
-    keys.forEach(k => scores[k] = parseInt(sessionStorage.getItem(k)) || 0);
-    const dominant = keys.reduce((a, b) => scores[a] > scores[b] ? a : b);
+    var keys = ['happy','sad','angry','peace','love','confused','fear','disgust'];
+    var scores = {};
+    keys.forEach(function(k) { scores[k] = parseInt(sessionStorage.getItem(k)) || 0; });
+    var dominant = keys.reduce(function(a,b) { return scores[a] > scores[b] ? a : b; });
 
-    const songs = {
-      anger:     [
-        { title: 'Break Stuff',       artist: 'Limp Bizkit' },
-        { title: 'Given Up',          artist: 'Linkin Park' },
-        { title: 'Killing in the Name', artist: 'Rage Against the Machine' }
+    var allSongs = {
+      happy:    [
+        { title:'Good as Hell',           artist:'Lizzo',               emoji:'🟡', color:'#FFD71E' },
+        { title:'Happy',                  artist:'Pharrell Williams',   emoji:'🟠', color:'#FFB347' },
+        { title:"Can't Stop the Feeling", artist:'Justin Timberlake',   emoji:'🟡', color:'#FFE135' }
       ],
-      sadness:   [
-        { title: 'The Night Will Always Win', artist: 'Manchester Orchestra' },
-        { title: 'Skinny Love',        artist: 'Bon Iver' },
-        { title: 'Motion Picture Soundtrack', artist: 'Radiohead' }
+      sad:      [
+        { title:'Skinny Love',            artist:'Bon Iver',            emoji:'🔵', color:'#7EB8F7' },
+        { title:'The Night Will Always Win', artist:'Manchester Orchestra', emoji:'🔷', color:'#4A90D9' },
+        { title:'Motion Picture Soundtrack', artist:'Radiohead',        emoji:'🟦', color:'#2264DC' }
       ],
-      happiness: [
-        { title: 'Good as Hell',       artist: 'Lizzo' },
-        { title: 'Happy',              artist: 'Pharrell Williams' },
-        { title: 'Can't Stop the Feeling', artist: 'Justin Timberlake' }
+      angry:    [
+        { title:'Break Stuff',            artist:'Limp Bizkit',         emoji:'🔴', color:'#E8251A' },
+        { title:'Killing in the Name',    artist:'RATM',                emoji:'🟥', color:'#C0392B' },
+        { title:'Given Up',               artist:'Linkin Park',         emoji:'🔴', color:'#FF4136' }
       ],
-      peace:     [
-        { title: 'Holocene',           artist: 'Bon Iver' },
-        { title: 'River',              artist: 'Leon Bridges' },
-        { title: 'Sunday Morning',     artist: 'Maroon 5' }
+      peace:    [
+        { title:'Imagine',                artist:'John Lennon',         emoji:'🩵', color:'#50D2A0' },
+        { title:'Fade into You',          artist:'Mazzy Star',          emoji:'🟣', color:'#9B59B6' },
+        { title:'Strawberry Swing',       artist:'Coldplay',            emoji:'🔵', color:'#85C1E9' }
       ],
-      love:      [
-        { title: 'All of Me',          artist: 'John Legend' },
-        { title: 'Make You Feel My Love', artist: 'Adele' },
-        { title: 'Lover',              artist: 'Taylor Swift' }
+      love:     [
+        { title:'All of Me',              artist:'John Legend',         emoji:'🩷', color:'#FF64A0' },
+        { title:'Make You Feel My Love',  artist:'Adele',               emoji:'🔴', color:'#E91E8C' },
+        { title:'Lover',                  artist:'Taylor Swift',        emoji:'🟣', color:'#C39BD3' }
       ],
-      fear:      [
-        { title: 'Breathe (2 AM)',     artist: 'Anna Nalick' },
-        { title: 'In the Air Tonight', artist: 'Phil Collins' },
-        { title: 'Afraid',             artist: 'The Neighbourhood' }
+      confused: [
+        { title:'Where Is My Mind',       artist:'Pixies',              emoji:'🟣', color:'#A050DC' },
+        { title:'Lost',                   artist:'Frank Ocean',         emoji:'🔵', color:'#7F8CF5' },
+        { title:'Head Full of Doubt',     artist:'The Avett Brothers',  emoji:'🟤', color:'#8E6B3E' }
       ],
-      disgust:   [
-        { title: 'Creep',              artist: 'Radiohead' },
-        { title: 'Everybody Hurts',    artist: 'R.E.M.' },
-        { title: 'Fake Plastic Trees', artist: 'Radiohead' }
+      fear:     [
+        { title:'In the Air Tonight',     artist:'Phil Collins',        emoji:'⚫', color:'#3d1a6e' },
+        { title:'Afraid',                 artist:'The Neighbourhood',   emoji:'🟣', color:'#5B2C6F' },
+        { title:'Breathe (2 AM)',         artist:'Anna Nalick',         emoji:'🔵', color:'#5D6D7E' }
       ],
-      confusion: [
-        { title: 'Head Full of Doubt', artist: 'The Avett Brothers' },
-        { title: 'Where Is My Mind',   artist: 'Pixies' },
-        { title: 'Lost',               artist: 'Frank Ocean' }
+      disgust:  [
+        { title:'Creep',                  artist:'Radiohead',           emoji:'🟢', color:'#6E8C32' },
+        { title:'Everybody Hurts',        artist:'R.E.M.',              emoji:'🟩', color:'#58913A' },
+        { title:'Fake Plastic Trees',     artist:'Radiohead',           emoji:'🟢', color:'#7DBB3F' }
       ]
     };
 
-    const list = songs[dominant];
-    let current = 0;
+    var songs   = allSongs[dominant];
+    var current = 1; // start at center
 
-    function show() {
-      document.getElementById('song-title').textContent  = list[current].title;
-      document.getElementById('song-artist').textContent = list[current].artist;
+    document.getElementById('music-title').textContent =
+      'some songs related to your ' + dominant + ' mood';
+
+    function render() {
+      var carousel = document.getElementById('carousel');
+      carousel.innerHTML = '';
+
+      var order = [
+        (current - 1 + songs.length) % songs.length,
+        current,
+        (current + 1) % songs.length
+      ];
+
+      order.forEach(function(idx, pos) {
+        var s   = songs[idx];
+        var div = document.createElement('div');
+        div.className = 'album ' + (pos === 1 ? 'center' : 'side');
+
+        var art = document.createElement('div');
+        art.className   = 'album-art';
+        art.style.background = s.color;
+        art.textContent = s.emoji;
+
+        var title  = document.createElement('div');
+        title.className   = 'album-title';
+        title.textContent = s.title;
+
+        var artist = document.createElement('div');
+        artist.className   = 'album-artist';
+        artist.textContent = 'By ' + s.artist;
+
+        if (pos !== 1) {
+          div.appendChild(art);
+          div.appendChild(title);
+          div.appendChild(artist);
+          var capturedIdx = idx;
+          div.onclick = function() { current = capturedIdx; render(); };
+        } else {
+          div.appendChild(art);
+        }
+
+        carousel.appendChild(div);
+      });
+
+      var center = songs[current];
+      document.getElementById('big-title').textContent  = center.title;
+      document.getElementById('big-artist').textContent = 'By ' + center.artist;
+      document.getElementById('spotify-link').href =
+        'https://open.spotify.com/search/' + encodeURIComponent(center.title + ' ' + center.artist);
     }
 
-    function next() {
-      current = (current + 1) % list.length;
-      show();
-    }
-
-    function prev() {
-      current = (current - 1 + list.length) % list.length;
-      show();
-    }
-
-    show();
+    render();
   </script>
 
 </body>

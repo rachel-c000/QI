@@ -1,60 +1,64 @@
-let cooldown = false;
+if (window.location.pathname.includes('video.html')) throw new Error('stop');
 
-// start the camera
+var cooldown = false;
+
+var detector = new AR.Detector();
+
 navigator.mediaDevices.getUserMedia({ video: true })
   .then(function(stream) {
     document.getElementById('video').srcObject = stream;
-    document.getElementById('status').textContent = 'Hold your card up to the camera';
+    document.getElementById('video').play();
     startScan();
   })
   .catch(function() {
-    document.getElementById('status').textContent = 'Camera unavailable — use buttons below';
+    var status = document.getElementById('status');
+    if (status) status.textContent = 'camera unavailable — tap a number below';
   });
 
-// scan loop
 function startScan() {
-  var video = document.getElementById('video');
+  var video  = document.getElementById('video');
   var canvas = document.createElement('canvas');
-  var ctx = canvas.getContext('2d');
+var ctx = canvas.getContext('2d', { willReadFrequently: true });
 
   setInterval(function() {
-    if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
     if (cooldown) return;
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
 
-    canvas.width = video.videoWidth;
+    canvas.width  = video.videoWidth;
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0);
 
     var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    var code = jsQR(imageData.data, imageData.width, imageData.height);
+    var markers   = detector.detect(imageData);
 
-    if (code) {
-      console.log('scanned:', code.data);
-      try {
-        var val = JSON.parse(code.data).value;
-        if (val >= 0 && val <= 10) {
-          confirm(val);
-        }
-      } catch(e) {
-        console.log('could not parse qr data:', code.data);
+    if (markers.length > 0) {
+      var id = markers[0].id;
+      console.log('aruco detected, id:', id);
+      if (id >= 0 && id <= 10) {
+        choose(id);
       }
     }
 
   }, 200);
 }
 
-// called by scan or button tap
-function confirm(val) {
+function choose(val) {
   if (cooldown) return;
   cooldown = true;
 
-  sessionStorage.setItem(EMOTION_KEY, val);
+  var btns = document.querySelectorAll('.number-row a');
+  btns.forEach(function(b) { b.classList.remove('selected'); });
+  if (btns[val]) btns[val].classList.add('selected');
 
-  document.getElementById('status').textContent = 'Got it';
-  document.getElementById('val').textContent = val;
-  document.getElementById('scanned').style.display = 'block';
+  var line = document.getElementById('scan-line');
+  if (line) line.style.background = '#5cdb95';
+
+  var status = document.getElementById('status');
+  if (status) status.textContent = 'got it — moving on...';
+
+  sessionStorage.setItem(EMOTION_KEY, val);
 
   setTimeout(function() {
     window.location.href = NEXT_PAGE;
-  }, 1500);
+  }, 900);
 }

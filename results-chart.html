@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Qi — Chart</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <script src="emotion-pages.js"></script>
+  <style>
+    body { display:flex; align-items:center; justify-content:center; height:100vh; }
+
+    .chart-layout {
+      display: flex;
+      align-items: center;
+      gap: 60px;
+      margin-top: 60px;
+    }
+
+    .chart-wrap {
+      width: 420px;
+      height: 420px;
+    }
+
+    .legend {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      color: #3d3228;
+    }
+
+    .legend-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+        nav {
+      position: fixed;
+      top: 30px;
+      right: 30px;
+      z-index: 9999;
+    }
+
+      nav a.active {
+  background: #f5f0d8;
+  color: #3d3228;
+  border: 1.5px solid #3d3228;
+}
+
+a img {
+width: 80px;
+position: absolute;
+top: 50px;
+left: 50px;
+}
+  </style>
+</head>
+<body>
+
+<a href="index.html">
+  <img src="images/logo.png" alt="logo">
+</a>
+
+  <nav>
+    <a href="results-interactive.html">landscape</a>
+    <a href="results-chart.html" class="active">chart</a>
+    <a href="results-element.html">element</a>
+    <a href="results-music.html">music</a>
+    <a href="results-comment.html">reflect</a>
+  </nav>
+
+  <div class="chart-layout">
+    <div class="chart-wrap">
+      <canvas id="pie"></canvas>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <script>
+    var keys   = ['happy','sad','angry','peace','love','confused','fear','disgust'];
+    var colors = ['#FFD71E','#2264DC','#E8251A','#50D2A0','#FF64A0','#A050DC','#3d1a6e','#6E8C32'];
+    var data   = keys.map(function(k) { return parseInt(sessionStorage.getItem(k)) || 0; });
+
+    // build legend
+    var legendEl = document.getElementById('legend');
+    keys.forEach(function(k, i) {
+      var item = document.createElement('div');
+      item.className = 'legend-item';
+      item.innerHTML =
+        '<div class="legend-dot" style="background:' + colors[i] + '"></div>' +
+        '<span>' + k + '</span>';
+      legendEl.appendChild(item);
+    });
+
+    new Chart(document.getElementById('pie'), {
+      type: 'doughnut',
+      data: {
+        labels: keys,
+        datasets: [{
+          data: data,
+          backgroundColor: colors,
+          borderWidth: 0
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        cutout: '48%'
+      }
+    });
+  </script>
+
+</body>
+</html>

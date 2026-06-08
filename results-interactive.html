@@ -1,575 +1,455 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Your Emotional Landscape</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qi — Your Landscape</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700&family=Courier+Prime&family=Fraunces:wght@700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    background: #000;
-    overflow: hidden;
-    font-family: 'DM Mono', monospace;
-    width: 100vw;
-    height: 100vh;
-  }
+    body {
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      font-family: 'Courier Prime', monospace;
+      transition: background-color 0.8s ease;
+    }
 
-  #canvas {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
+    #canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
 
-  #ui {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 10;
-  }
+    /* UI OVERLAY — pointer-events only on text/nav, not the whole layer */
+    .ui {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+    }
 
-  #title-block {
-    position: absolute;
-    top: 48px;
-    left: 56px;
-    pointer-events: all;
-  }
+    .logo-link {
+      position: absolute;
+      top: 36px;
+      left: 44px;
+      text-decoration: none;
+      pointer-events: all;
+    }
+    .logo-text {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #2e2a24;
+    }
+    .logo-text span {
+      font-family: 'Courier Prime', monospace;
+      font-style: italic;
+    }
 
-  #title-block h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(28px, 4vw, 52px);
-    font-weight: 400;
-    color: rgba(255,255,255,0.92);
-    line-height: 1.1;
-    letter-spacing: -0.5px;
-    text-shadow: 0 2px 30px rgba(0,0,0,0.8);
-  }
+    nav {
+      position: absolute;
+      top: 30px;
+      right: 30px;
+      display: flex;
+      gap: 2px;
+      pointer-events: all;
+    }
+    nav a {
+      font-family: 'Courier Prime', monospace;
+      font-size: 13px;
+      color: #2e2a24;
+      text-decoration: none;
+      padding: 7px 14px;
+      border: 1.5px solid transparent;
+      background: rgba(245,240,216,0.7);
+      backdrop-filter: blur(4px);
+    }
+    nav a:hover { background: rgba(245,240,216,0.95); }
+    nav a.active {
+      background: rgba(245,240,216,0.95);
+      border-color: #2e2a24;
+    }
 
-  #title-block .subtitle {
-    font-size: 11px;
-    font-weight: 300;
-    color: rgba(255,255,255,0.4);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    margin-top: 8px;
-  }
+    .page-title {
+      position: absolute;
+      top: 90px;
+      left: 44px;
+      pointer-events: none;
+    }
+    .page-title h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #2e2a24;
+    }
+    .page-title p {
+      font-size: 12px;
+      color: #2e2a24;
+      opacity: 0.55;
+      margin-top: 3px;
+    }
 
-  #score-panel {
-    position: absolute;
-    bottom: 48px;
-    left: 56px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
+    .bottom-left {
+      position: absolute;
+      bottom: 36px;
+      left: 44px;
+    }
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+    .score-row .label {
+      font-size: 12px;
+      color: #2e2a24;
+      width: 58px;
+      opacity: 0.8;
+    }
+    .bar-bg {
+      width: 180px;
+      height: 3px;
+      background: rgba(46,42,36,0.15);
+      border-radius: 2px;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.6s ease;
+    }
+    .score-row .num {
+      font-size: 11px;
+      color: #2e2a24;
+      opacity: 0.6;
+      width: 14px;
+    }
 
-  .score-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    opacity: 0;
-    animation: fadeIn 0.6s forwards;
-  }
+    .bottom-right {
+      position: absolute;
+      bottom: 36px;
+      right: 44px;
+      text-align: right;
+    }
+    .dominant-label {
+      font-size: 12px;
+      color: #2e2a24;
+      opacity: 0.6;
+      margin-bottom: 4px;
+    }
+    .dominant-word {
+      font-family: 'Fraunces', serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: #2e2a24;
+    }
 
-  .score-label {
-    font-size: 10px;
-    font-weight: 300;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.45);
-    width: 76px;
-  }
-
-  .score-bar-bg {
-    width: 100px;
-    height: 2px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-
-  .score-bar-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
-  }
-
-  .score-num {
-    font-size: 10px;
-    color: rgba(255,255,255,0.35);
-    width: 14px;
-    text-align: right;
-  }
-
-  #reset-btn {
-    position: absolute;
-    top: 48px;
-    right: 56px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.15);
-    color: rgba(255,255,255,0.5);
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 10px 18px;
-    cursor: pointer;
-    pointer-events: all;
-    transition: all 0.2s;
-    border-radius: 2px;
-    text-decoration: none;
-  }
-
-  #reset-btn:hover {
-    background: rgba(255,255,255,0.12);
-    color: rgba(255,255,255,0.8);
-  }
-
-  #dominant-label {
-    position: absolute;
-    bottom: 48px;
-    right: 56px;
-    text-align: right;
-  }
-
-  #dominant-label .dom-word {
-    font-family: 'Playfair Display', serif;
-    font-style: italic;
-    font-size: clamp(18px, 2.5vw, 32px);
-    color: rgba(255,255,255,0.7);
-    text-shadow: 0 0 40px currentColor;
-  }
-
-  #dominant-label .dom-sub {
-    font-size: 9px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.25);
-    margin-top: 4px;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateX(-8px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-
-  #cursor-trail {
-    position: fixed;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 100;
-    mix-blend-mode: screen;
-    transition: width 0.1s, height 0.1s;
-  }
-</style>
+    /* MAHJONG TILES */
+    .tile {
+      position: absolute;
+      width: 62px;
+      height: 84px;
+      border-radius: 6px;
+      cursor: grab;
+      user-select: none;
+      will-change: transform;
+      transition: box-shadow 0.15s;
+    }
+    .tile:active { cursor: grabbing; }
+    .tile.dragging {
+      z-index: 999 !important;
+      box-shadow: 4px 8px 20px rgba(0,0,0,0.28);
+    }
+    .tile svg {
+      width: 100%;
+      height: 100%;
+      border-radius: 6px;
+      display: block;
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
 
-<canvas id="canvas"></canvas>
+  <div id="canvas"></div>
 
-<nav>
-  <a href="result.html" id="active">landscape</a>
-  <a href="chart.html">chart</a>
-  <a href="element.html">element</a>
-  <a href="music.html">music</a>
-  <a href="reflect.html">reflect</a>
-</nav>
+  <div class="ui">
+    <a class="logo-link" href="index.html">
+      <span class="logo-text">氣<span>(qi)</span></span>
+    </a>
 
-<div id="ui">
-  <div id="title-block">
-    <h1 id="main-title">Your emotional<br>landscape</h1>
-    <p class="subtitle">Generated from your scores</p>
+    <nav>
+      <a href="results-interactive.html" class="active">landscape</a>
+      <a href="results-chart.html">chart</a>
+      <a href="results-element.html">element</a>
+      <a href="results-music.html">music</a>
+      <a href="results-comment.html">reflect</a>
+    </nav>
+
+    <div class="page-title">
+      <h2>your emotional landscape</h2>
+      <p>a reflection of yourself</p>
+    </div>
+
+    <div class="bottom-left">
+      <div class="score-bars" id="score-bars"></div>
+    </div>
+
+    <div class="bottom-right">
+      <div class="dominant-label">your most dominant feeling is</div>
+      <div class="dominant-word" id="dominant-word"></div>
+    </div>
   </div>
 
-  <div id="score-panel"></div>
+  <script>
+    var keys = ['happy','sad','angry','peace','love','confused','fear','disgust'];
 
-  <a id="reset-btn" href="index.html">← new session</a>
+    var colors = {
+      happy:    '#FFD71E',
+      sad:      '#2264DC',
+      angry:    '#E8251A',
+      peace:    '#50D2A0',
+      love:     '#FF64A0',
+      confused: '#A050DC',
+      fear:     '#3d1a6e',
+      disgust:  '#6E8C32'
+    };
 
-  <div id="dominant-label">
-    <div class="dom-word" id="dom-word"></div>
-    <div class="dom-sub">dominant emotion</div>
-  </div>
-</div>
+    var bgMap = {
+      happy:    '#f5f0d8',
+      sad:      '#d8e4f5',
+      angry:    '#f5dbd8',
+      peace:    '#c8f0e4',
+      love:     '#f5d8e8',
+      confused: '#ede0f5',
+      fear:     '#ddd8f5',
+      disgust:  '#dff0d8'
+    };
 
-<div id="cursor-trail"></div>
+    /* SVG symbols for each emotion drawn on the tile face */
+    function tileSVG(emotion, color) {
+      var bg = '#f7f2e4';
+      var border = color;
+      var symbol = '';
 
-<script>
-const EMOTIONS = {
-  anger:     { color: [255, 45, 20],    shape: 'shard',    label: 'anger' },
-  sadness:   { color: [40, 100, 220],   shape: 'drop',     label: 'sadness' },
-  happiness: { color: [255, 210, 30],   shape: 'circle',   label: 'happiness' },
-  peace:     { color: [80, 210, 160],   shape: 'orb',      label: 'peace' },
-  love:      { color: [255, 100, 160],  shape: 'heart',    label: 'love' },
-  fear:      { color: [100, 30, 160],   shape: 'flicker',  label: 'fear' },
-  disgust:   { color: [100, 130, 50],   shape: 'blob',     label: 'disgust' },
-  confusion: { color: [160, 80, 220],   shape: 'fragment', label: 'confusion' }
-};
-
-function getScores() {
-  const params = new URLSearchParams(window.location.search);
-  const scores = {};
-  for (const key of Object.keys(EMOTIONS)) {
-    scores[key] = Math.min(10, Math.max(0, parseFloat(params.get(key) || '0')));
-  }
-  if (Object.values(scores).every(v => v === 0)) {
-    scores.anger = 9; scores.sadness = 6; scores.happiness = 4;
-    scores.peace = 2; scores.love = 7; scores.fear = 3;
-    scores.disgust = 1; scores.confusion = 5;
-  }
-  return scores;
-}
-
-const scores = getScores();
-
-function blendBgColor(scores) {
-  let r = 0, g = 0, b = 0, total = 0;
-  for (const [key, val] of Object.entries(scores)) {
-    if (val === 0) continue;
-    const [er, eg, eb] = EMOTIONS[key].color;
-    r += er * val; g += eg * val; b += eb * val;
-    total += val;
-  }
-  if (total === 0) return [10, 10, 20];
-  return [r / total, g / total, b / total].map(v => Math.max(0, Math.min(255, v * 0.18)));
-}
-
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-let W, H, mouse = { x: -9999, y: -9999 };
-let particles = [];
-let bgColor = blendBgColor(scores);
-let time = 0;
-
-function resize() {
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resize);
-resize();
-
-class Particle {
-  constructor(emotion) {
-    this.emotion = emotion;
-    const E = EMOTIONS[emotion];
-    this.color = [...E.color];
-    this.shape = E.shape;
-    this.reset();
-  }
-
-  reset() {
-    this.x = Math.random() * W;
-    this.y = Math.random() * H;
-    const score = scores[this.emotion];
-    const speedMult = 0.3 + score * 0.15;
-
-    if (this.emotion === 'anger') {
-      this.vx = (Math.random() - 0.5) * speedMult * 4;
-      this.vy = (Math.random() - 0.5) * speedMult * 4;
-      this.size = 4 + Math.random() * score * 2.5;
-      this.life = 0.6 + Math.random() * 0.4;
-      this.decay = 0.004 + Math.random() * 0.006;
-      this.rotation = Math.random() * Math.PI * 2;
-      this.rotSpeed = (Math.random() - 0.5) * 0.15;
-    } else if (this.emotion === 'sadness') {
-      this.vx = (Math.random() - 0.5) * 0.3;
-      this.vy = 0.4 + Math.random() * speedMult;
-      this.size = 3 + Math.random() * 8;
-      this.life = 0.8 + Math.random() * 0.2;
-      this.decay = 0.002 + Math.random() * 0.003;
-    } else if (this.emotion === 'happiness') {
-      const angle = Math.random() * Math.PI * 2;
-      const spd = speedMult * 2 + Math.random() * 2;
-      this.vx = Math.cos(angle) * spd;
-      this.vy = Math.sin(angle) * spd - speedMult;
-      this.size = 4 + Math.random() * 8;
-      this.life = 0.7 + Math.random() * 0.3;
-      this.decay = 0.005 + Math.random() * 0.005;
-      this.bounce = true;
-    } else if (this.emotion === 'peace') {
-      const angle = Math.random() * Math.PI * 2;
-      this.vx = Math.cos(angle) * 0.3;
-      this.vy = Math.sin(angle) * 0.3 - 0.1;
-      this.size = 6 + Math.random() * 14;
-      this.life = 0.4 + Math.random() * 0.4;
-      this.decay = 0.001 + Math.random() * 0.002;
-      this.pulse = Math.random() * Math.PI * 2;
-    } else if (this.emotion === 'love') {
-      const angle = Math.random() * Math.PI * 2;
-      this.vx = Math.cos(angle) * 0.8;
-      this.vy = Math.sin(angle) * 0.8 - 0.5;
-      this.size = 5 + Math.random() * 12;
-      this.life = 0.6 + Math.random() * 0.4;
-      this.decay = 0.003 + Math.random() * 0.003;
-      this.targetX = mouse.x;
-      this.targetY = mouse.y;
-    } else if (this.emotion === 'fear') {
-      this.vx = (Math.random() - 0.5) * speedMult * 5;
-      this.vy = (Math.random() - 0.5) * speedMult * 5;
-      this.size = 2 + Math.random() * 6;
-      this.life = 0.5 + Math.random() * 0.5;
-      this.decay = 0.008 + Math.random() * 0.008;
-    } else if (this.emotion === 'disgust') {
-      this.vx = (Math.random() - 0.5) * 0.4;
-      this.vy = 0.2 + Math.random() * 0.6;
-      this.size = 8 + Math.random() * 14;
-      this.life = 0.5 + Math.random() * 0.4;
-      this.decay = 0.001 + Math.random() * 0.002;
-      this.wobble = Math.random() * Math.PI * 2;
-    } else if (this.emotion === 'confusion') {
-      const angle = Math.random() * Math.PI * 2;
-      this.vx = Math.cos(angle) * speedMult * 1.5;
-      this.vy = Math.sin(angle) * speedMult * 1.5;
-      this.size = 5 + Math.random() * 12;
-      this.life = 0.6 + Math.random() * 0.4;
-      this.decay = 0.003 + Math.random() * 0.004;
-      this.rotation = Math.random() * Math.PI * 2;
-      this.rotSpeed = (Math.random() - 0.5) * 0.25;
-      this.hueShift = 0;
-    }
-    this.alpha = this.life;
-    this.initialSize = this.size;
-  }
-
-  update() {
-    const score = scores[this.emotion];
-
-    if (this.emotion === 'anger') {
-      this.vx += (Math.random() - 0.5) * 0.3;
-      this.vy += (Math.random() - 0.5) * 0.3;
-      this.rotation += this.rotSpeed;
-    } else if (this.emotion === 'sadness') {
-      this.vy += 0.015;
-      this.vx *= 0.99;
-    } else if (this.emotion === 'happiness') {
-      this.vy -= 0.02;
-      if (this.bounce) {
-        if (this.x < 0 || this.x > W) this.vx *= -0.8;
-        if (this.y < 0 || this.y > H) this.vy *= -0.8;
+      if (emotion === 'happy') {
+        symbol = '<circle cx="31" cy="36" r="14" fill="none" stroke="'+color+'" stroke-width="2.5"/>' +
+          '<path d="M22 38 Q31 48 40 38" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linecap="round"/>' +
+          '<circle cx="26" cy="32" r="2" fill="'+color+'"/><circle cx="36" cy="32" r="2" fill="'+color+'"/>' +
+          '<text x="31" y="70" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="11" fill="'+color+'" font-weight="700">快乐</text>';
+      } else if (emotion === 'sad') {
+        symbol = '<circle cx="31" cy="36" r="14" fill="none" stroke="'+color+'" stroke-width="2.5"/>' +
+          '<path d="M22 44 Q31 35 40 44" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linecap="round"/>' +
+          '<circle cx="26" cy="32" r="2" fill="'+color+'"/><circle cx="36" cy="32" r="2" fill="'+color+'"/>' +
+          '<line x1="28" y1="28" x2="26" y2="25" stroke="'+color+'" stroke-width="1.5"/>' +
+          '<line x1="34" y1="28" x2="36" y2="25" stroke="'+color+'" stroke-width="1.5"/>' +
+          '<text x="31" y="70" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="11" fill="'+color+'" font-weight="700">悲伤</text>';
+      } else if (emotion === 'angry') {
+        symbol = '<polygon points="31,18 36,30 50,30 39,38 43,52 31,44 19,52 23,38 12,30 26,30" fill="none" stroke="'+color+'" stroke-width="2.2"/>' +
+          '<text x="31" y="70" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="11" fill="'+color+'" font-weight="700">愤怒</text>';
+      } else if (emotion === 'peace') {
+        symbol = '<circle cx="31" cy="36" r="13" fill="none" stroke="'+color+'" stroke-width="2.5"/>' +
+          '<line x1="31" y1="23" x2="31" y2="49" stroke="'+color+'" stroke-width="2"/>' +
+          '<line x1="31" y1="44" x2="20" y2="38" stroke="'+color+'" stroke-width="2"/>' +
+          '<line x1="31" y1="44" x2="42" y2="38" stroke="'+color+'" stroke-width="2"/>' +
+          '<text x="31" y="70" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="11" fill="'+color+'" font-weight="700">平静</text>';
+      } else if (emotion === 'love') {
+        symbol = '<path d="M31 46 C31 46 16 37 16 27 C16 21 21 18 31 26 C41 18 46 21 46 27 C46 37 31 46 31 46Z" fill="none" stroke="'+color+'" stroke-width="2.5"/>' +
+          '<text x="31" y="70" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="11" fill="'+color+'" font-weight="700">爱</text>';
+      } else if (emotion === 'confused') {
+        symbol = '<text x="31" y="46" text-anchor="middle" font-size="28" fill="'+color+'" font-family="serif">?</text>' +
+          '<text x="31" y="70" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="11" fill="'+color+'" font-weight="700">困惑</text>';
+      } else if (emotion === 'fear') {
+        symbol = '<path d="M31 18 L44 42 L18 42 Z" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linejoin="round"/>' +
+          '<line x1="31" y1="28" x2="31" y2="36" stroke="'+color+'" stroke-width="2.5" stroke-linecap="round"/>' +
+          '<circle cx="31" cy="40" r="1.5" fill="'+color+'"/>' +
+          '<text x="31" y="70" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="11" fill="'+color+'" font-weight="700">恐惧</text>';
+      } else if (emotion === 'disgust') {
+        symbol = '<path d="M20 30 Q25 22 31 28 Q37 22 42 30 Q46 40 31 50 Q16 40 20 30Z" fill="none" stroke="'+color+'" stroke-width="2.2"/>' +
+          '<text x="31" y="70" text-anchor="middle" font-family="Noto Serif SC,serif" font-size="11" fill="'+color+'" font-weight="700">厌恶</text>';
       }
-    } else if (this.emotion === 'peace') {
-      this.pulse += 0.02;
-      this.vx = Math.sin(this.pulse * 0.7) * 0.2;
-      this.vy = Math.cos(this.pulse * 0.5) * 0.2 - 0.05;
-    } else if (this.emotion === 'love') {
-      const dx = mouse.x - this.x, dy = mouse.y - this.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist > 5) {
-        this.vx += (dx / dist) * 0.04 * (score / 10);
-        this.vy += (dy / dist) * 0.04 * (score / 10);
-      }
-      this.vx *= 0.96; this.vy *= 0.96;
-    } else if (this.emotion === 'fear') {
-      const dx = mouse.x - this.x, dy = mouse.y - this.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 200) {
-        this.vx -= (dx / dist) * 0.8;
-        this.vy -= (dy / dist) * 0.8;
-      }
-      this.vx += (Math.random() - 0.5) * 0.5;
-      this.vy += (Math.random() - 0.5) * 0.5;
-      this.vx *= 0.95; this.vy *= 0.95;
-    } else if (this.emotion === 'disgust') {
-      this.wobble += 0.04;
-      this.vx = Math.sin(this.wobble) * 0.4;
-      this.vy += 0.008;
-    } else if (this.emotion === 'confusion') {
-      this.rotation += this.rotSpeed;
-      this.vx += (Math.random() - 0.5) * 0.2;
-      this.vy += (Math.random() - 0.5) * 0.2;
-      this.vx *= 0.97; this.vy *= 0.97;
-      this.hueShift = (this.hueShift || 0) + 2;
+
+      return '<svg viewBox="0 0 62 84" xmlns="http://www.w3.org/2000/svg">' +
+        '<rect x="1" y="1" width="60" height="82" rx="5" fill="'+bg+'" stroke="'+border+'" stroke-width="2.5"/>' +
+        '<rect x="4" y="4" width="54" height="76" rx="3" fill="none" stroke="'+border+'" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>' +
+        symbol +
+        '</svg>';
     }
 
-    this.x += this.vx;
-    this.y += this.vy;
-    this.life -= this.decay;
-    this.alpha = this.life;
-
-    if (this.life <= 0 || this.x < -200 || this.x > W + 200 || this.y < -200 || this.y > H + 200) {
-      this.reset();
-    }
-  }
-
-  draw() {
-    const a = Math.max(0, this.alpha);
-    let [r, g, b] = this.color;
-
-    if (this.emotion === 'confusion' && this.hueShift !== undefined) {
-      const shift = this.hueShift;
-      r = (r + Math.sin(shift * 0.05) * 60 + 255) % 255;
-      b = (b + Math.cos(shift * 0.04) * 80 + 255) % 255;
-    }
-
-    ctx.save();
-    ctx.globalAlpha = a * 0.85;
-
-    if (this.emotion === 'anger') {
-      ctx.translate(this.x, this.y);
-      ctx.rotate(this.rotation);
-      ctx.beginPath();
-      const s = this.size;
-      ctx.moveTo(0, -s);
-      ctx.lineTo(s * 0.3, -s * 0.1);
-      ctx.lineTo(s, s * 0.2);
-      ctx.lineTo(0, s * 0.6);
-      ctx.lineTo(-s * 0.7, s * 0.1);
-      ctx.closePath();
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
-      ctx.fill();
-    } else if (this.emotion === 'sadness') {
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
-      ctx.moveTo(this.x, this.y + this.size * 0.5);
-      ctx.quadraticCurveTo(this.x - this.size * 0.5, this.y + this.size * 1.5, this.x, this.y + this.size * 2);
-      ctx.quadraticCurveTo(this.x + this.size * 0.5, this.y + this.size * 1.5, this.x, this.y + this.size * 0.5);
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
-      ctx.fill();
-    } else if (this.emotion === 'happiness') {
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size * 0.6, 0, Math.PI * 2);
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
-      ctx.fill();
-    } else if (this.emotion === 'peace') {
-      const pulse = Math.sin(this.pulse) * 0.2 + 0.8;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size * pulse, 0, Math.PI * 2);
-      const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * pulse);
-      grad.addColorStop(0, `rgba(${r},${g},${b},0.6)`);
-      grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
-      ctx.fillStyle = grad;
-      ctx.fill();
-    } else if (this.emotion === 'love') {
-      ctx.translate(this.x, this.y);
-      const s = this.size * 0.5;
-      ctx.beginPath();
-      ctx.moveTo(0, s * 0.5);
-      ctx.bezierCurveTo(-s, -s * 0.5, -s * 2, s, 0, s * 2);
-      ctx.bezierCurveTo(s * 2, s, s, -s * 0.5, 0, s * 0.5);
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
-      ctx.fill();
-    } else if (this.emotion === 'fear') {
-      const flicker = Math.random() > 0.3 ? 1 : 0.3;
-      ctx.globalAlpha = a * flicker;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size * 0.4, 0, Math.PI * 2);
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
-      ctx.fill();
-    } else if (this.emotion === 'disgust') {
-      ctx.translate(this.x, this.y);
-      ctx.scale(1, 1.4);
-      ctx.beginPath();
-      ctx.arc(0, 0, this.size * 0.6, 0, Math.PI * 2);
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
-      ctx.fill();
-    } else if (this.emotion === 'confusion') {
-      ctx.translate(this.x, this.y);
-      ctx.rotate(this.rotation);
-      const s = this.size;
-      ctx.beginPath();
-      for (let i = 0; i < 5; i++) {
-        const angle = (i / 5) * Math.PI * 2;
-        const x = Math.cos(angle) * s;
-        const y = Math.sin(angle) * s;
-        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      ctx.strokeStyle = `rgb(${r},${g},${b})`;
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    }
-
-    ctx.restore();
-  }
-}
-
-function spawnParticles() {
-  particles = [];
-  const MAX_PER_EMOTION = 80;
-  for (const [key, val] of Object.entries(scores)) {
-    if (val === 0) continue;
-    const count = Math.floor((val / 10) * MAX_PER_EMOTION);
-    for (let i = 0; i < count; i++) {
-      const p = new Particle(key);
-      p.x = Math.random() * W;
-      p.y = Math.random() * H;
-      p.life = Math.random();
-      particles.push(p);
-    }
-  }
-}
-
-function drawBackground() {
-  const [r, g, b] = bgColor;
-  ctx.fillStyle = `rgba(${r},${g},${b},0.18)`;
-  ctx.fillRect(0, 0, W, H);
-}
-
-function animate() {
-  time++;
-  drawBackground();
-
-  for (const p of particles) {
-    p.update();
-    p.draw();
-  }
-
-  requestAnimationFrame(animate);
-}
-
-function buildScorePanel() {
-  const panel = document.getElementById('score-panel');
-  let delay = 0;
-  for (const [key, val] of Object.entries(scores)) {
-    const [r, g, b] = EMOTIONS[key].color;
-    const row = document.createElement('div');
-    row.className = 'score-row';
-    row.style.animationDelay = `${delay}ms`;
-    row.innerHTML = `
-      <span class="score-label">${key}</span>
-      <div class="score-bar-bg">
-        <div class="score-bar-fill" style="width:0%;background:rgb(${r},${g},${b})"></div>
-      </div>
-      <span class="score-num">${val}</span>
-    `;
-    panel.appendChild(row);
-    delay += 80;
-  }
-  setTimeout(() => {
-    document.querySelectorAll('.score-bar-fill').forEach((bar, i) => {
-      const key = Object.keys(scores)[i];
-      bar.style.width = `${scores[key] * 10}%`;
+    /* --- read scores --- */
+    var scores = {};
+    keys.forEach(function(k) {
+      scores[k] = parseInt(sessionStorage.getItem(k)) || 0;
     });
-  }, 200);
-}
 
-function setDominant() {
-  let top = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
-  document.getElementById('dom-word').textContent = top[0];
-  const [r, g, b] = EMOTIONS[top[0]].color;
-  document.getElementById('dom-word').style.color = `rgb(${r},${g},${b})`;
-}
+    /* demo fallback so page looks good if no sessionStorage */
+    var hasAny = keys.some(function(k) { return scores[k] > 0; });
+    if (!hasAny) {
+      scores = { happy: 7, sad: 2, angry: 4, peace: 9, love: 5, confused: 4, fear: 3, disgust: 0 };
+    }
 
-document.addEventListener('mousemove', e => {
-  mouse.x = e.clientX;
-  mouse.y = e.clientY;
-  const trail = document.getElementById('cursor-trail');
-  trail.style.left = (e.clientX - 4) + 'px';
-  trail.style.top = (e.clientY - 4) + 'px';
-  trail.style.background = `rgb(${bgColor.map(v => Math.min(255, v * 5)).join(',')})`;
-});
+    /* dominant */
+    var dominant = keys.reduce(function(a, b) { return scores[a] >= scores[b] ? a : b; });
+    document.getElementById('dominant-word').textContent = dominant;
+    document.body.style.backgroundColor = bgMap[dominant];
 
-ctx.fillStyle = `rgb(${bgColor.join(',')})`;
-ctx.fillRect(0, 0, W, H);
+    /* score bars */
+    var barsEl = document.getElementById('score-bars');
+    keys.forEach(function(k) {
+      var row = document.createElement('div');
+      row.className = 'score-row';
+      row.innerHTML =
+        '<span class="label">'+k+'</span>' +
+        '<div class="bar-bg"><div class="bar-fill" style="width:'+(scores[k]*10)+'%;background:'+colors[k]+'"></div></div>' +
+        '<span class="num">'+scores[k]+'</span>';
+      barsEl.appendChild(row);
+    });
 
-spawnParticles();
-buildScorePanel();
-setDominant();
-animate();
-</script>
+    /* --- spawn tiles --- */
+    var canvas = document.getElementById('canvas');
+    var tiles = [];
+    var zCounter = 10;
+
+    /* safe spawn zone — avoid UI corners */
+var spawnGrid = (function() {
+  var cols = Math.floor((window.innerWidth - 160) / 90);
+  var rows = Math.floor((window.innerHeight - 260) / 110);
+  var slots = [];
+  for (var r = 0; r < rows; r++) {
+    for (var c = 0; c < cols; c++) {
+      slots.push({
+        x: 80 + c * 90 + Math.random() * 20,
+        y: 120 + r * 110 + Math.random() * 20
+      });
+    }
+  }
+  // shuffle
+  for (var i = slots.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = slots[i]; slots[i] = slots[j]; slots[j] = tmp;
+  }
+  var idx = 0;
+  return function() {
+    var s = slots[idx % slots.length];
+    idx++;
+    return s;
+  };
+})();
+
+    keys.forEach(function(k) {
+      var count = scores[k];
+      for (var i = 0; i < count; i++) {
+        var pos = randPos();
+        var el = document.createElement('div');
+        el.className = 'tile';
+        el.innerHTML = tileSVG(k, colors[k]);
+        var rotation = (Math.random() - 0.5) * 30;
+        el.style.left = pos.x + 'px';
+        el.style.top  = pos.y + 'px';
+        el.style.transform = 'rotate('+rotation+'deg)';
+        el.style.zIndex = zCounter++;
+
+        var tileData = { el: el, x: pos.x, y: pos.y, vx: 0, vy: 0, rot: rotation, emotion: k };
+        tiles.push(tileData);
+        canvas.appendChild(el);
+        makeDraggable(el, tileData);
+      }
+    });
+
+    /* --- drag logic with simple collision push --- */
+    function makeDraggable(el, data) {
+      var startX, startY, startLeft, startTop, dragging = false;
+
+      function onDown(e) {
+        dragging = true;
+        el.classList.add('dragging');
+        el.style.zIndex = ++zCounter;
+        var p = pointer(e);
+        startX = p.x; startY = p.y;
+        startLeft = data.x; startTop = data.y;
+        e.preventDefault();
+      }
+
+      function onMove(e) {
+        if (!dragging) return;
+        var p = pointer(e);
+        var dx = p.x - startX;
+        var dy = p.y - startY;
+        data.x = startLeft + dx;
+        data.y = startTop  + dy;
+        el.style.left = data.x + 'px';
+        el.style.top  = data.y + 'px';
+
+        /* give velocity for physics push */
+        data.vx = p.x - startX - (data.lastPx || p.x - startX);
+        data.vy = p.y - startY - (data.lastPy || p.y - startY);
+        data.lastPx = p.x - startX;
+        data.lastPy = p.y - startY;
+
+        pushNearby(data);
+      }
+
+      function onUp() {
+        if (!dragging) return;
+        dragging = false;
+        el.classList.remove('dragging');
+        data.lastPx = null; data.lastPy = null;
+      }
+
+      el.addEventListener('mousedown',  onDown);
+      el.addEventListener('touchstart', onDown, { passive: false });
+      window.addEventListener('mousemove',  onMove);
+      window.addEventListener('touchmove',  onMove, { passive: false });
+      window.addEventListener('mouseup',   onUp);
+      window.addEventListener('touchend',  onUp);
+    }
+
+    function pointer(e) {
+      if (e.touches) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      return { x: e.clientX, y: e.clientY };
+    }
+
+    function pushNearby(source) {
+      var W = 62, H = 84, PUSH = 80;
+      tiles.forEach(function(t) {
+        if (t === source) return;
+        var dx = (t.x + W/2) - (source.x + W/2);
+        var dy = (t.y + H/2) - (source.y + H/2);
+        var dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < PUSH && dist > 1) {
+          var force = (PUSH - dist) / PUSH;
+          t.vx += (dx / dist) * force * 8;
+          t.vy += (dy / dist) * force * 8;
+        }
+      });
+    }
+
+    /* physics tick — drift, friction, boundary bounce */
+    function tick() {
+      var W = 62, H = 84;
+      tiles.forEach(function(t) {
+        if (Math.abs(t.vx) < 0.05 && Math.abs(t.vy) < 0.05) return;
+        t.vx *= 0.88;
+        t.vy *= 0.88;
+        t.x += t.vx;
+        t.y += t.vy;
+
+        /* bounce off edges */
+        if (t.x < 0)                          { t.x = 0;                        t.vx *= -0.4; }
+        if (t.x > window.innerWidth  - W)     { t.x = window.innerWidth  - W;   t.vx *= -0.4; }
+        if (t.y < 0)                          { t.y = 0;                        t.vy *= -0.4; }
+        if (t.y > window.innerHeight - H)     { t.y = window.innerHeight - H;   t.vy *= -0.4; }
+
+        t.el.style.left = t.x + 'px';
+        t.el.style.top  = t.y + 'px';
+      });
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  </script>
+
 </body>
 </html>
