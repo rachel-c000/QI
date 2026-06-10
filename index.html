@@ -3,21 +3,315 @@
 <head>
   <meta charset="UTF-8">
   <title>Qi 氣</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="emotion-pages.css">
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&family=Fraunces:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+
+  <style>
+     @font-face {
+  font-family: 'OldCenturyStyleRegular';
+  src: url(fonts/Century\ Old\ Style\ Regular.otf);
+}
+@font-face {
+  font-family: 'OldCenturyStyleBold';
+  src: url(fonts/Century\ Old\ Style\ Std\ Bold.otf);
+}
+
+@font-face {
+  font-family: 'BatangChe';
+  src: url(fonts/BatangChe.ttf);
+}
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #f5f0d0;
+      cursor: pointer;
+    }
+
+    /* physics canvas — behind everything */
+    #physics-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    /* text layer — on top, pointer events pass through for click */
+    #text-layer {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding-left: 14%;
+      gap: 0;
+    }
+
+    .landing-logo h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(120px, 18vw, 240px);
+      font-weight: 700;
+      color: #3d3228;
+      line-height: 0.85;
+      letter-spacing: -0.02em;
+    }
+
+    .landing-kanji h2 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(28px, 4vw, 52px);
+      font-weight: 700;
+      color: #3d3228;
+      line-height: 1;
+      margin-top: -4px;
+    }
+
+    .landing-prompt h3 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(28px, 4.2vw, 56px);
+      font-weight: 700;
+      font-style: italic;
+      color: #3d3228;
+      line-height: 1.1;
+      margin-top: 16px;
+    }
+
+    .landing-cta h4 {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(12px, 1.2vw, 16px);
+      font-weight: 400;
+      color: #3d3228;
+      opacity: 0.65;
+      margin-top: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    .landing-logo h1 {
+      font-size: 80px;
+    }
+
+    h1 {
+font-family: 'OldCenturyStyleBold', sans-serif;
+font-size: 150px;
+}
+
+h2 {
+  font-family: 'OldCenturyStyleRegular', sans-serif;
+  font-size: 80px;
+}
+
+.landing-prompt h3 {
+  font-family: 'BatangChe', sans-serif;
+  font-size: 30px;
+}
+
+h4 {
+  font-family: 'BatangChe', sans-serif;
+  font-size: 20px;
+}
+  </style>
 </head>
+
 <body onclick="window.location.href='instructions.html'">
 
-  <div>
-    <div class="landing-logo"><h1>Qi</h1></div>
-    <div class="landing-kanji"><h2>氣(qi)</h2></div>
-    <div class="landing-prompt"><h3>how is your energy today?</h3></div>
-    <div class="landing-cta"><h4>press any button to continue</h4></div>
+  <canvas id="physics-canvas"></canvas>
+
+  <div id="text-layer">
+    <div class="landing-logo"  id="el-qi"><h1>Qi 氣(qi)</h1></div>
+    <div class="landing-kanji" id="el-kanji"><h2></h2></div>
+    <div class="landing-prompt" id="el-prompt"><h3>how is your energy today?</h3></div>
+    <div class="landing-cta"   id="el-cta"><h4>press any button to continue</h4></div>
   </div>
 
+  <!-- Matter.js physics -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+
   <script>
+    // ─── keydown → navigate ───
     document.addEventListener('keydown', function() {
       window.location.href = 'instructions.html';
     });
+
+    // ─── tile image paths ───
+    // Uses your existing mahjong tile images
+    var TILES = [
+      'images/happy-mahjong.png',
+      'images/sad-mahjong.png',
+      'images/angry-mahjong.png',
+      'images/peace-mahjong.png',
+      'images/love-mahjong.png',
+      'images/confused-mahjong.png',
+      'images/fear-mahjong.png',
+      'images/disgust-mahjong.png'
+    ];
+
+    var TILE_W = 130;
+    var TILE_H = 165;
+
+    // ─── wait for fonts/layout, then boot ───
+    window.addEventListener('load', function() {
+      setTimeout(bootPhysics, 80);
+    });
+
+    function bootPhysics() {
+      var W = window.innerWidth;
+      var H = window.innerHeight;
+
+      // ── retina-sharp canvas ──
+      var DPR = window.devicePixelRatio || 1;
+      var canvas = document.getElementById('physics-canvas');
+      canvas.width  = W * DPR;
+      canvas.height = H * DPR;
+      canvas.style.width  = W + 'px';
+      canvas.style.height = H + 'px';
+
+      var Engine    = Matter.Engine;
+      var Runner    = Matter.Runner;
+      var Bodies    = Matter.Bodies;
+      var Body      = Matter.Body;
+      var Composite = Matter.Composite;
+
+      var engine = Engine.create({ gravity: { x: 0, y: 1.2 } });
+      var world  = engine.world;
+
+      var ctx = canvas.getContext('2d');
+      // scale all draw calls to DPR so everything is crisp
+      ctx.scale(DPR, DPR);
+
+      // preload tile images
+      var images = {};
+      TILES.forEach(function(src) {
+        var img = new Image();
+        img.onload  = function() { images[src] = img; };
+        img.onerror = function() {};
+        img.src = src;
+      });
+
+      // ─── walls & floor only (tiles fall behind text) ───
+      var thickness = 60;
+      var floor = Bodies.rectangle(W/2, H + thickness/2, W * 3, thickness,
+        { isStatic: true, restitution: 0.2, friction: 0.85, label: 'floor' });
+      var wallL = Bodies.rectangle(-thickness/2, H/2, thickness, H * 3,
+        { isStatic: true, label: 'wallL' });
+      var wallR = Bodies.rectangle(W + thickness/2, H/2, thickness, H * 3,
+        { isStatic: true, label: 'wallR' });
+
+      Composite.add(world, [floor, wallL, wallR]);
+
+      // ─── text obstacle bodies (tiles collide with text) ───
+      var textIds = ['el-qi','el-kanji','el-prompt','el-cta'];
+      textIds.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var r = el.getBoundingClientRect();
+        if (r.width < 4 || r.height < 4) return;
+        var b = Bodies.rectangle(
+          r.left + r.width  / 2,
+          r.top  + r.height / 2,
+          r.width,
+          r.height,
+          { isStatic: true, restitution: 0.25, friction: 0.6, label: 'text-' + id }
+        );
+        Composite.add(world, b);
+      });
+
+      // ─── spawn tiles ───
+      var tilePool = [];
+
+      function spawnTile() {
+        var src  = TILES[Math.floor(Math.random() * TILES.length)];
+        var x    = Math.random() * (W - TILE_W) + TILE_W / 2;
+        var y    = -TILE_H;
+        var angle = (Math.random() - 0.5) * 0.8; // mild initial tilt
+
+        var body = Bodies.rectangle(x, y, TILE_W, TILE_H, {
+          restitution: 0.3,
+          friction: 0.5,
+          frictionAir: 0.01,
+          angle: angle,
+          label: 'tile',
+          render: { fillStyle: '#ccc' }
+        });
+
+        // attach image src for drawing
+        body._imgSrc   = src;
+        body._rotation = 0;
+
+        // initial horizontal nudge
+        Body.setVelocity(body, {
+          x: (Math.random() - 0.5) * 3,
+          y: Math.random() * 2 + 1
+        });
+
+        Composite.add(world, body);
+        tilePool.push(body);
+      }
+
+      // spawn all 8 tiles staggered
+      var spawned = 0;
+      var spawnInterval = setInterval(function() {
+        spawnTile();
+        spawned++;
+        if (spawned >= 14) clearInterval(spawnInterval);
+      }, 220);
+
+      // ─── custom render loop ───
+      var runner = Runner.create();
+      Runner.run(runner, engine);
+
+      function drawFrame() {
+        requestAnimationFrame(drawFrame);
+
+        ctx.clearRect(0, 0, W, H);
+
+        tilePool.forEach(function(body) {
+          var pos   = body.position;
+          var angle = body.angle;
+          var src   = body._imgSrc;
+          var img   = images[src];
+
+          ctx.save();
+          ctx.translate(pos.x, pos.y);
+          ctx.rotate(angle);
+
+          if (img && img.complete && img.naturalWidth > 0) {
+            // crisp high-quality image rendering
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            // drop shadow
+            ctx.shadowColor = 'rgba(0,0,0,0.22)';
+            ctx.shadowBlur  = 14;
+            ctx.shadowOffsetX = 4;
+            ctx.shadowOffsetY = 5;
+            ctx.drawImage(img, -TILE_W/2, -TILE_H/2, TILE_W, TILE_H);
+          } else {
+            // fallback: white card with rounded rect
+            ctx.shadowColor = 'rgba(0,0,0,0.15)';
+            ctx.shadowBlur  = 8;
+            ctx.fillStyle   = '#fff';
+            ctx.beginPath();
+            ctx.roundRect(-TILE_W/2, -TILE_H/2, TILE_W, TILE_H, 6);
+            ctx.fill();
+          }
+
+          ctx.restore();
+        });
+      }
+
+      drawFrame();
+
+      // ─── resize ───
+      window.addEventListener('resize', function() {
+        // simplest approach: reload
+        location.reload();
+      });
+    }
   </script>
 
 </body>

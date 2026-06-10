@@ -338,17 +338,35 @@
     };
 
     /* =========================
-       LOAD + COMPUTE
-    ========================= */
+   LOAD + COMPUTE
+========================= */
 
-    var keys = ['happy','sad','angry','peace','love','confused','fear','disgust'];
-    var scores = {};
-    keys.forEach(k => { scores[k] = parseInt(sessionStorage.getItem(k)) || 0; });
+var keys = ['happy','sad','angry','peace','love','confused','fear','disgust'];
+var scores = {};
+keys.forEach(k => { scores[k] = parseInt(sessionStorage.getItem(k)) || 0; });
 
-    var top3 = [...keys].sort((a,b) => scores[b] - scores[a]).slice(0,3);
-    var comboKey = [...top3].sort().join('-');
+var top3 = [...keys].sort((a,b) => scores[b] - scores[a]).slice(0,3);
+var comboKey = [...top3].sort().join('-');
 
-    var animal = animals[comboKey] || fallback;
+// Try exact match first
+var animal = animals[comboKey];
+
+// If no exact match, find the animal whose key shares the most emotions with top3
+if (!animal) {
+  var bestMatch = null;
+  var bestScore = -1;
+
+  Object.keys(animals).forEach(function(key) {
+    var keyEmotions = key.split('-');
+    var overlap = top3.filter(e => keyEmotions.includes(e)).length;
+    if (overlap > bestScore) {
+      bestScore = overlap;
+      bestMatch = key;
+    }
+  });
+
+  animal = bestMatch ? animals[bestMatch] : fallback;
+}
 
     /* =========================
        RENDER LEFT COLUMN
