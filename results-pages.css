@@ -1,0 +1,574 @@
+ @font-face {
+  font-family: 'OldCenturyStyleRegular';
+  src: url(fonts/Century\ Old\ Style\ Regular.otf);
+}
+@font-face {
+  font-family: 'OldCenturyStyleBold';
+  src: url(fonts/Century\ Old\ Style\ Std\ Bold.otf);
+}
+
+@font-face {
+  font-family: 'BatangChe';
+  src: url(fonts/BatangChe.ttf);
+}
+
+/* =========================
+   GLOBAL RESET
+========================= */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* =========================
+   GLOBAL BASE STYLES
+========================= */
+body {
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  font-family: 'Courier Prime', monospace;
+  transition: background-color 0.8s ease;
+}
+
+/* optional layouts used on some pages */
+body.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+body.flex-column {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* =========================
+   CANVAS BACKGROUND
+========================= */
+#canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+h1 {
+font-family: 'OldCenturyStyleBold', sans-serif;
+font-size: 150px;
+}
+
+h2 {
+  font-family: 'OldCenturyStyleRegular', sans-serif;
+  font-size: 80px;
+}
+
+h3 {
+  font-family: 'BatangChe', sans-serif;
+  font-size: 30px;
+}
+
+h4 {
+  font-family: 'BatangChe', sans-serif;
+  font-size: 15px;
+}
+
+/* =========================
+   UI LAYER (shared)
+========================= */
+.ui {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* =========================
+   LOGO
+========================= */
+.logo-link {
+  position: absolute;
+  top: 36px;
+  left: 44px;
+  text-decoration: none;
+  pointer-events: all;
+}
+
+.logo-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #2e2a24;
+}
+
+.logo-text span {
+  font-family: 'Courier Prime', monospace;
+  font-style: italic;
+}
+
+/* =========================
+   NAV (deduplicated)
+========================= */
+nav {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  display: flex;
+  gap: 2px;
+  pointer-events: all;
+}
+
+nav a {
+  font-family: 'Courier Prime', monospace;
+  font-size: 13px;
+  color: #2e2a24;
+  text-decoration: none;
+  padding: 7px 14px;
+  border: 1.5px solid transparent;
+  background: rgba(245,240,216,0.7);
+  backdrop-filter: blur(4px);
+}
+
+nav a:hover {
+  background: rgba(245,240,216,0.95);
+}
+
+nav a.active {
+  background: rgba(245,240,216,0.95);
+  border-color: #2e2a24;
+}
+
+/* =========================
+   PAGE TITLE
+========================= */
+.page-title {
+  position: absolute;
+  top: 90px;
+  left: 44px;
+  pointer-events: none;
+}
+
+.page-title h2 {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #2e2a24;
+}
+
+.page-title p {
+  font-size: 12px;
+  color: #2e2a24;
+  opacity: 0.55;
+  margin-top: 3px;
+}
+
+/* =========================
+   SCORE BARS (results pages)
+========================= */
+.bottom-left {
+  position: absolute;
+  bottom: 36px;
+  left: 44px;
+}
+
+.score-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.score-row .label {
+  font-size: 12px;
+  color: #2e2a24;
+  width: 58px;
+  opacity: 0.8;
+}
+
+.bar-bg {
+  width: 180px;
+  height: 3px;
+  background: rgba(46,42,36,0.15);
+  border-radius: 2px;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+.score-row .num {
+  font-size: 11px;
+  color: #2e2a24;
+  opacity: 0.6;
+  width: 14px;
+}
+
+/* =========================
+   DOMINANT FEELING
+========================= */
+.bottom-right {
+  position: absolute;
+  bottom: 36px;
+  right: 44px;
+  text-align: right;
+}
+
+.dominant-label {
+  font-size: 12px;
+  color: #2e2a24;
+  opacity: 0.6;
+  margin-bottom: 4px;
+}
+
+.dominant-word {
+  font-family: 'Fraunces', serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #2e2a24;
+}
+
+/* =========================
+   MAHJONG TILES
+========================= */
+.tile {
+  position: absolute;
+  width: 62px;
+  height: 84px;
+  border-radius: 6px;
+  cursor: grab;
+  user-select: none;
+  will-change: transform;
+  transition: box-shadow 0.15s;
+}
+
+.tile:active {
+  cursor: grabbing;
+}
+
+.tile.dragging {
+  z-index: 999 !important;
+  box-shadow: 4px 8px 20px rgba(0,0,0,0.28);
+}
+
+.tile img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 6px;
+  pointer-events: none;
+  object-fit: contain;
+}
+
+/* =========================
+   REFLECTION PAGE
+========================= */
+.reflect-layout {
+  display: flex;
+  gap: 60px;
+  padding: 110px 40px 40px 40px;
+  flex: 1;
+}
+
+.reflect-left {
+  width: 260px;
+  flex-shrink: 0;
+  padding-top: 60px;
+}
+
+.reflect-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reflect-heading {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #3d3228;
+}
+
+textarea {
+  flex: 1;
+  min-height: 340px;
+  border: 1.5px solid #3d3228;
+  border-radius: 8px;
+  background: #fff;
+  padding: 20px;
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  color: #3d3228;
+  resize: none;
+  outline: none;
+  line-height: 1.7;
+}
+
+textarea::placeholder {
+  color: rgba(61,50,40,0.3);
+}
+
+.submit-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+.submit-btn {
+  background: transparent;
+  border: 1.5px solid #3d3228;
+  border-radius: 20px;
+  padding: 10px 24px;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  color: #3d3228;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.submit-btn:hover {
+  background: #3d3228;
+  color: #f5f0d8;
+}
+
+.submit-btn.primary {
+  background: #3d3228;
+  color: #f5f0d8;
+}
+
+.submit-btn.primary:hover {
+  opacity: 0.8;
+}
+
+#feedback {
+  font-size: 13px;
+  color: #3d3228;
+  opacity: 0.7;
+  display: none;
+}
+
+.done-link {
+  font-size: 13px;
+  color: #3d3228;
+  text-decoration: underline;
+  display: none;
+  margin-top: 8px;
+}
+
+/* =========================
+   ELEMENT PAGE
+========================= */
+.element-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin-top: 60px;
+  text-align: center;
+}
+
+.element-title {
+  font-size: 14px;
+  color: #3d3228;
+  margin-bottom: 20px;
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+}
+
+.element-card {
+  width: 380px;
+}
+
+.element-card-top {
+  height: 80px;
+}
+
+.element-card-img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  display: block;
+}
+
+.element-card-placeholder {
+  width: 100%;
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 80px;
+}
+
+.element-name {
+  font-family: 'Fraunces', serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: #3d3228;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.element-desc {
+  font-size: 14px;
+  color: #3d3228;
+  line-height: 1.6;
+  max-width: 380px;
+  text-align: justify;
+  margin-bottom: 8px;
+}
+
+.element-tags {
+  font-size: 13px;
+  color: #3d3228;
+  opacity: 0.6;
+}
+
+/* =========================
+   MUSIC PAGE
+========================= */
+.music-title {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #3d3228;
+  margin-top: 80px;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.carousel {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  justify-content: center;
+}
+
+.album {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.album.side {
+  transform: scale(0.75);
+  opacity: 0.6;
+}
+
+.album.center {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.album-art {
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  border-radius: 4px;
+}
+
+.album.center .album-art {
+  width: 360px;
+  height: 360px;
+  font-size: 80px;
+}
+
+.album-title {
+  font-family: 'Fraunces', serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #3d3228;
+  text-align: center;
+}
+
+.album-artist {
+  font-size: 11px;
+  color: #3d3228;
+  opacity: 0.6;
+  text-align: center;
+}
+
+.center-info {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.center-info .big-title {
+  font-family: 'Fraunces', serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: #3d3228;
+}
+
+.center-info .big-artist {
+  font-size: 14px;
+  color: #3d3228;
+  opacity: 0.6;
+  margin-top: 4px;
+}
+
+.spotify-corner {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  text-align: right;
+}
+
+.spotify-corner p {
+  font-size: 13px;
+  color: #3d3228;
+  margin-bottom: 8px;
+}
+
+.spotify-corner a {
+  font-size: 12px;
+  color: #3d3228;
+  text-decoration: underline;
+}
+
+/* =========================
+   CHART PAGE
+========================= */
+.chart-layout {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  margin-top: 60px;
+}
+
+.chart-wrap {
+  width: 420px;
+  height: 420px;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  color: #3d3228;
+}
+
+.legend-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}

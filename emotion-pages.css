@@ -239,9 +239,9 @@
     .number-row a:last-child { border-right: none; }
     .number-row a:hover { background: #2e2a24; color: #F5F0BE; }
 
-    h1 {
-  font-family: 'OldCenturyStyleBold', sans-serif;
-  font-size: 150px;
+h1 {
+font-family: 'OldCenturyStyleBold', sans-serif;
+font-size: 150px;
 }
 
 h2 {

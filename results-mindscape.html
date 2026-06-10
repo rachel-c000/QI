@@ -6,172 +6,7 @@
   <title>Qi — Your Landscape</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700&family=Courier+Prime&family=Fraunces:wght@700&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      overflow: hidden;
-      width: 100vw;
-      height: 100vh;
-      font-family: 'Courier Prime', monospace;
-      transition: background-color 0.8s ease;
-    }
-
-    #canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    /* UI OVERLAY — pointer-events only on text/nav, not the whole layer */
-    .ui {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 100;
-    }
-
-    .logo-link {
-      position: absolute;
-      top: 36px;
-      left: 44px;
-      text-decoration: none;
-      pointer-events: all;
-    }
-    .logo-text {
-      font-family: 'Noto Serif SC', serif;
-      font-size: 22px;
-      font-weight: 700;
-      color: #2e2a24;
-    }
-    .logo-text span {
-      font-family: 'Courier Prime', monospace;
-      font-style: italic;
-    }
-
-    nav {
-      position: absolute;
-      top: 30px;
-      right: 30px;
-      display: flex;
-      gap: 2px;
-      pointer-events: all;
-    }
-    nav a {
-      font-family: 'Courier Prime', monospace;
-      font-size: 13px;
-      color: #2e2a24;
-      text-decoration: none;
-      padding: 7px 14px;
-      border: 1.5px solid transparent;
-      background: rgba(245,240,216,0.7);
-      backdrop-filter: blur(4px);
-    }
-    nav a:hover { background: rgba(245,240,216,0.95); }
-    nav a.active {
-      background: rgba(245,240,216,0.95);
-      border-color: #2e2a24;
-    }
-
-    .page-title {
-      position: absolute;
-      top: 90px;
-      left: 44px;
-      pointer-events: none;
-    }
-    .page-title h2 {
-      font-family: 'Fraunces', serif;
-      font-size: 22px;
-      font-weight: 700;
-      color: #2e2a24;
-    }
-    .page-title p {
-      font-size: 12px;
-      color: #2e2a24;
-      opacity: 0.55;
-      margin-top: 3px;
-    }
-
-    .bottom-left {
-      position: absolute;
-      bottom: 36px;
-      left: 44px;
-    }
-    .score-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 5px;
-    }
-    .score-row .label {
-      font-size: 12px;
-      color: #2e2a24;
-      width: 58px;
-      opacity: 0.8;
-    }
-    .bar-bg {
-      width: 180px;
-      height: 3px;
-      background: rgba(46,42,36,0.15);
-      border-radius: 2px;
-    }
-    .bar-fill {
-      height: 100%;
-      border-radius: 2px;
-      transition: width 0.6s ease;
-    }
-    .score-row .num {
-      font-size: 11px;
-      color: #2e2a24;
-      opacity: 0.6;
-      width: 14px;
-    }
-
-    .bottom-right {
-      position: absolute;
-      bottom: 36px;
-      right: 44px;
-      text-align: right;
-    }
-    .dominant-label {
-      font-size: 12px;
-      color: #2e2a24;
-      opacity: 0.6;
-      margin-bottom: 4px;
-    }
-    .dominant-word {
-      font-family: 'Fraunces', serif;
-      font-size: 32px;
-      font-weight: 700;
-      color: #2e2a24;
-    }
-
-    /* MAHJONG TILES */
-    .tile {
-      position: absolute;
-      width: 62px;
-      height: 84px;
-      border-radius: 6px;
-      cursor: grab;
-      user-select: none;
-      will-change: transform;
-      transition: box-shadow 0.15s;
-    }
-    .tile:active { cursor: grabbing; }
-    .tile.dragging {
-      z-index: 999 !important;
-      box-shadow: 4px 8px 20px rgba(0,0,0,0.28);
-    }
-.tile img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  border-radius: 6px;
-  pointer-events: none;
-  object-fit: contain;
-}
-  </style>
+  <link rel="stylesheet" href="results-pages.css">
 </head>
 <body>
 
@@ -183,11 +18,10 @@
     </a>
 
     <nav>
-      <a href="results-interactive.html" class="active">landscape</a>
-      <a href="results-chart.html">chart</a>
-      <a href="results-element.html">element</a>
-      <a href="results-music.html">music</a>
-      <a href="results-comment.html">reflect</a>
+      <a href="results-mindscape.html" class="active"><h4>mindscape</h4></a>
+      <a href="results-animal.html"><h4>animal</h4></a>
+      <a href="results-music.html"><h4>music</h4></a>
+      <a href="results-reflect.html"><h4>reflect</h4></a>
     </nav>
 
     <div class="page-title">

@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Qi — Reflect</title>
+  <link rel="stylesheet" href="results-pages.css">
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&family=Fraunces:wght@700&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #bff7ea;
+      font-family: 'Courier Prime', monospace;
+      color: #3d3228;
+    }
+
+    /* =========================
+       TWO-COLUMN LAYOUT
+    ========================= */
+
+    .page-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: calc(100vh - 60px);
+    }
+
+    /* =========================
+       LEFT COLUMN
+    ========================= */
+
+    .col-left {
+      padding: 48px 48px 60px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .reflect-title {
+      font-family: 'Fraunces', serif;
+      font-size: 44px;
+      font-weight: 700;
+      line-height: 1;
+      margin: 0;
+    }
+
+    .reflect-subtitle {
+      font-size: 13px;
+      line-height: 1.7;
+      opacity: 0.7;
+      max-width: 360px;
+      margin: 0;
+    }
+
+    /* prompt row */
+    .prompt-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .prompt-label {
+      font-family: 'Fraunces', serif;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .shuffle-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px 4px;
+      font-size: 16px;
+      opacity: 0.6;
+      transition: opacity 0.15s, transform 0.3s;
+      line-height: 1;
+    }
+
+    .shuffle-btn:hover { opacity: 1; }
+    .shuffle-btn.spinning { transform: rotate(180deg); }
+
+    .prompt-text {
+      font-size: 12px;
+      color: #3d3228;
+      opacity: 0.65;
+      border: 1px dashed rgba(61,50,40,0.35);
+      padding: 9px 14px;
+      max-width: 400px;
+      line-height: 1.5;
+      font-style: italic;
+    }
+
+    /* write box */
+    .write-box {
+      flex: 1;
+      position: relative;
+      border: 1px solid rgba(61,50,40,0.25);
+      background: rgba(255,255,255,0.15);
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .write-box textarea {
+      flex: 1;
+      width: 100%;
+      min-height: 240px;
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: 'Courier Prime', monospace;
+      font-size: 13px;
+      color: #3d3228;
+      padding: 20px 20px 10px 20px;
+      line-height: 1.7;
+    }
+
+    .write-box textarea::placeholder { opacity: 0.4; }
+
+    .box-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px 14px 20px;
+    }
+
+    /* anonymous id badge */
+    .anon-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .anon-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(61,50,40,0.3);
+      background: transparent;
+    }
+
+    .anon-label {
+      font-size: 14px;
+      font-family: 'Fraunces', serif;
+      font-weight: 700;
+    }
+
+    /* submit button */
+    .submit-btn {
+      background: none;
+      border: 1px solid rgba(61,50,40,0.4);
+      font-family: 'Courier Prime', monospace;
+      font-size: 12px;
+      color: #3d3228;
+      padding: 7px 18px;
+      cursor: pointer;
+      border-radius: 20px;
+      transition: background 0.15s;
+    }
+
+    .submit-btn:hover { background: rgba(61,50,40,0.08); }
+
+    /* submitted messages list */
+    .my-posts {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .my-post-label {
+      font-size: 11px;
+      opacity: 0.5;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .my-post-item {
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.2);
+      border-left: 2px solid rgba(61,50,40,0.2);
+      opacity: 0.75;
+    }
+
+    /* =========================
+       RIGHT COLUMN
+    ========================= */
+
+    .col-right {
+      padding: 48px 80px 60px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      border-left: 1px solid rgba(61,50,40,0.12);
+    }
+
+    /* score bars */
+    .score-bars { display: flex; flex-direction: column; gap: 6px; }
+
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .score-label {
+      font-size: 12px;
+      width: 62px;
+      text-align: right;
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 3px;
+      background: rgba(61,50,40,0.12);
+      position: relative;
+    }
+
+    .bar-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      transition: width 0.6s ease;
+    }
+
+    .score-num {
+      font-size: 11px;
+      width: 18px;
+      text-align: right;
+      opacity: 0.5;
+      flex-shrink: 0;
+    }
+
+    /* divider */
+    .col-divider {
+      height: 1px;
+      background: rgba(61,50,40,0.12);
+    }
+
+    /* community feed */
+    .feed-title {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .feed-scroll {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: 420px;
+      padding-right: 4px;
+    }
+
+    .feed-scroll::-webkit-scrollbar { width: 3px; }
+    .feed-scroll::-webkit-scrollbar-thumb { background: rgba(61,50,40,0.2); border-radius: 2px; }
+
+    /* post card */
+    .post-card {
+      border: 1px solid rgba(61,50,40,0.15);
+      padding: 16px 18px;
+      background: rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: background 0.15s;
+    }
+
+    .post-card:hover { background: rgba(255,255,255,0.2); }
+
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .post-dot {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .post-num {
+      font-family: 'Fraunces', serif;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .post-text {
+      font-size: 12px;
+      line-height: 1.7;
+      opacity: 0.8;
+    }
+
+    .post-footer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .like-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'Courier Prime', monospace;
+      font-size: 12px;
+      color: #3d3228;
+      opacity: 0.55;
+      transition: opacity 0.15s;
+    }
+
+    .like-btn:hover { opacity: 1; }
+    .like-btn.liked { opacity: 1; color: #e0667a; }
+
+    .like-btn svg {
+      width: 14px; height: 14px;
+      transition: transform 0.15s;
+    }
+
+    .like-btn:hover svg { transform: scale(1.2); }
+    .like-btn.liked svg { fill: #e0667a; }
+
+    /* empty feed state */
+    .feed-empty {
+      font-size: 12px;
+      opacity: 0.45;
+      padding: 20px 0;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <a class="logo-link" href="index.html">
+    <span class="logo-text">氣<span>(qi)</span></span>
+  </a>
+
+  <nav>
+    <a href="results-mindscape.html"><h4>mindscape</h4></a>
+    <a href="results-chart.html"><h4>chart</h4></a>
+    <a href="results-animal.html"><h4>animal</h4></a>
+    <a href="results-music.html"><h4>music</h4></a>
+    <a href="results-reflect.html" class="active"><h4>reflect</h4></a>
+  </nav>
+
+  <div class="page-body">
+
+    <!-- ======= LEFT COLUMN ======= -->
+    <div class="col-left">
+<br><br><br>
+      <h1 class="reflect-title">Reflection</h1>
+      <p class="reflect-subtitle">
+        Feel free to write a sentence or two to share some reflection on
+        your current emotions and why you might be feeling this way.
+      </p>
+
+      <!-- prompt -->
+      <div>
+        <div class="prompt-row">
+          <span class="prompt-label">Generate Prompts</span>
+          <button class="shuffle-btn" id="shuffle-btn" title="New prompt" onclick="shufflePrompt()">⇌</button>
+        </div>
+        <div class="prompt-text" id="prompt-text"></div>
+      </div>
+
+      <!-- write area -->
+      <div class="write-box">
+        <textarea id="comment" placeholder="write here..."></textarea>
+        <div class="box-footer">
+          <div class="anon-badge">
+            <div class="anon-dot" id="anon-dot"></div>
+            <div class="anon-label" id="anon-label"></div>
+          </div>
+          <button class="submit-btn" onclick="submitPost()">submit</button>
+        </div>
+      </div>
+
+      <!-- my submitted posts -->
+      <div class="my-posts" id="my-posts" style="display:none">
+        <div class="my-post-label">your reflections</div>
+        <div id="my-posts-list"></div>
+      </div>
+
+    </div>
+
+    <!-- ======= RIGHT COLUMN ======= -->
+    <div class="col-right">
+
+      <!-- score bars --><br><br>
+      <div class="score-bars" id="score-bars"></div>
+
+      <div class="col-divider"></div>
+
+      <p class="feed-title">Some reflections by others</p>
+
+      <div class="feed-scroll" id="feed-scroll">
+        <div class="feed-empty" id="feed-empty">no reflections yet — be the first.</div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    /* =========================
+       EMOTION DATA
+    ========================= */
+
+    var keys = ['happy','sad','angry','peace','love','confused','fear','disgust'];
+
+    var colors = {
+      happy:   '#FFD71E', sad:     '#2264DC', angry:   '#E8251A',
+      peace:   '#50D2A0', love:    '#FF64A0', confused:'#A050DC',
+      fear:    '#3d1a6e', disgust: '#6E8C32'
+    };
+
+    var scores = {};
+    keys.forEach(function(k) { scores[k] = parseInt(sessionStorage.getItem(k)) || 0; });
+
+    var dominant = keys.reduce(function(a,b) { return scores[a] > scores[b] ? a : b; });
+
+    /* =========================
+       ANONYMOUS USER ID
+       Persistent per session via sessionStorage
+    ========================= */
+
+    var userId = parseInt(sessionStorage.getItem('qi_user_id'));
+    if (!userId) {
+      userId = Math.floor(Math.random() * 900) + 1;
+      sessionStorage.setItem('qi_user_id', userId);
+    }
+
+    document.getElementById('anon-label').textContent = 'No.' + userId;
+    document.getElementById('anon-dot').style.background = colors[dominant];
+
+    /* =========================
+       SCORE BARS
+    ========================= */
+
+    var max = Math.max.apply(null, keys.map(function(k) { return scores[k]; })) || 1;
+
+    var barsEl = document.getElementById('score-bars');
+    keys.forEach(function(k) {
+      var pct = Math.round((scores[k] / max) * 100);
+      var row = document.createElement('div');
+      row.className = 'score-row';
+      row.innerHTML =
+        '<span class="score-label">' + k + '</span>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:' + colors[k] + '"></div></div>' +
+        '<span class="score-num">' + scores[k] + '</span>';
+      barsEl.appendChild(row);
+    });
+
+    /* =========================
+       PROMPTS
+    ========================= */
+
+    var prompts = [
+      "q. What do you think is contributing to your most dominant emotion?",
+      "q. When did you first notice feeling this way today?",
+      "q. Is there something you wish you could say to someone right now?",
+      "q. What would help you feel more at ease in this moment?",
+      "q. If this feeling had a colour, what would it be and why?",
+      "q. What is one small thing that brought you comfort today?",
+      "q. Is there anything you're holding onto that you'd like to let go of?",
+      "q. What does your body feel like right now — heavy, light, tense, loose?",
+      "q. Who comes to mind when you think about how you're feeling?",
+      "q. What would you tell a friend feeling the same way you do right now?"
+    ];
+
+    var promptIdx = Math.floor(Math.random() * prompts.length);
+
+    function showPrompt() {
+      document.getElementById('prompt-text').textContent = prompts[promptIdx];
+    }
+
+    function shufflePrompt() {
+      var btn = document.getElementById('shuffle-btn');
+      btn.classList.add('spinning');
+      setTimeout(function() { btn.classList.remove('spinning'); }, 300);
+      promptIdx = (promptIdx + 1) % prompts.length;
+      showPrompt();
+    }
+
+    showPrompt();
+
+    /* =========================
+       STORAGE HELPERS
+       Using localStorage so posts persist across sessions
+       (shared feed simulated via same browser storage)
+    ========================= */
+
+    function getPosts() {
+      try { return JSON.parse(localStorage.getItem('qi_public') || '[]'); }
+      catch(e) { return []; }
+    }
+
+    function savePosts(arr) {
+      localStorage.setItem('qi_public', JSON.stringify(arr));
+    }
+
+    function getLikes() {
+      try { return JSON.parse(localStorage.getItem('qi_likes_' + userId) || '[]'); }
+      catch(e) { return []; }
+    }
+
+    function saveLikes(arr) {
+      localStorage.setItem('qi_likes_' + userId, JSON.stringify(arr));
+    }
+
+    /* =========================
+       SEED POSTS
+       So the feed isn't empty on first load
+    ========================= */
+
+    function maybeSeeded() {
+      return localStorage.getItem('qi_seeded') === '1';
+    }
+
+    function seedPosts() {
+      if (maybeSeeded()) return;
+      var seed = [
+        { id: 1,  userId: 2,  dominant: 'love',    comment: "Today was full of surprises that I didn't expect today, this brought on a lot of new emotions I don't normally express like love, confused and fear all at the same time!", likes: 4,  time: new Date().toISOString() },
+        { id: 2,  userId: 7,  dominant: 'happy',   comment: "I felt very emotional today lol.", likes: 20, time: new Date().toISOString() },
+        { id: 3,  userId: 14, dominant: 'peace',   comment: "Something about today felt slower than usual. I didn't mind it.", likes: 8,  time: new Date().toISOString() },
+        { id: 4,  userId: 31, dominant: 'sad',     comment: "I couldn't stop thinking about someone I miss. Not sure why today of all days.", likes: 12, time: new Date().toISOString() },
+        { id: 5,  userId: 58, dominant: 'angry',   comment: "Tried to keep it together. Some things just build up over time.", likes: 6,  time: new Date().toISOString() },
+        { id: 6,  userId: 23, dominant: 'confused', comment: "I don't fully understand why I feel the way I do, but maybe that's okay.", likes: 15, time: new Date().toISOString() }
+      ];
+      savePosts(seed);
+      localStorage.setItem('qi_seeded', '1');
+    }
+
+    seedPosts();
+
+    /* =========================
+       RENDER FEED
+    ========================= */
+
+    function renderFeed() {
+      var posts    = getPosts();
+      var liked    = getLikes();
+      var feedEl   = document.getElementById('feed-scroll');
+      var emptyEl  = document.getElementById('feed-empty');
+
+      // remove old cards (keep empty msg)
+      var cards = feedEl.querySelectorAll('.post-card');
+      cards.forEach(function(c) { c.remove(); });
+
+      if (!posts.length) {
+        emptyEl.style.display = '';
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+
+      // newest first
+      var sorted = posts.slice().reverse();
+
+      sorted.forEach(function(post) {
+        var isLiked = liked.indexOf(post.id) !== -1;
+        var dotColor = colors[post.dominant] || '#bbb';
+
+        var card = document.createElement('div');
+        card.className = 'post-card';
+        card.id = 'post-card-' + post.id;
+
+        card.innerHTML =
+          '<div class="post-header">' +
+            '<div class="post-dot" style="background:' + dotColor + '"></div>' +
+            '<div class="post-num">No.' + post.userId + '</div>' +
+          '</div>' +
+          '<div class="post-text">' + escapeHtml(post.comment) + '</div>' +
+          '<div class="post-footer">' +
+            '<button class="like-btn' + (isLiked ? ' liked' : '') + '" onclick="toggleLike(' + post.id + ')" id="like-btn-' + post.id + '">' +
+              '<svg viewBox="0 0 24 24" fill="' + (isLiked ? '#e0667a' : 'none') + '" stroke="currentColor" stroke-width="1.8" xmlns="http://www.w3.org/2000/svg">' +
+                '<path d="M12 21C12 21 3 14.5 3 8.5C3 5.42 5.42 3 8.5 3C10.24 3 11.91 3.81 13 5.08C14.09 3.81 15.76 3 17.5 3C20.58 3 23 5.42 23 8.5C23 14.5 12 21 12 21Z"/>' +
+              '</svg>' +
+              '<span id="like-count-' + post.id + '">' + (post.likes || 0) + '</span>' +
+            '</button>' +
+          '</div>';
+
+        feedEl.appendChild(card);
+      });
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    /* =========================
+       LIKE TOGGLE
+    ========================= */
+
+    function toggleLike(postId) {
+      var liked = getLikes();
+      var posts = getPosts();
+      var idx   = liked.indexOf(postId);
+      var post  = posts.find(function(p) { return p.id === postId; });
+      if (!post) return;
+
+      var btn        = document.getElementById('like-btn-' + postId);
+      var countEl    = document.getElementById('like-count-' + postId);
+
+      if (idx === -1) {
+        liked.push(postId);
+        post.likes = (post.likes || 0) + 1;
+        btn.classList.add('liked');
+        btn.querySelector('svg').setAttribute('fill', '#e0667a');
+      } else {
+        liked.splice(idx, 1);
+        post.likes = Math.max(0, (post.likes || 1) - 1);
+        btn.classList.remove('liked');
+        btn.querySelector('svg').setAttribute('fill', 'none');
+      }
+
+      saveLikes(liked);
+      savePosts(posts);
+      countEl.textContent = post.likes;
+    }
+
+    /* =========================
+       SUBMIT POST
+    ========================= */
+
+    var nextId = null;
+
+    function getNextId() {
+      var posts = getPosts();
+      return posts.length ? Math.max.apply(null, posts.map(function(p){ return p.id||0; })) + 1 : 100;
+    }
+
+    function submitPost() {
+      var text = document.getElementById('comment').value.trim();
+      if (!text) return;
+
+      var posts = getPosts();
+
+      var post = {
+        id:       getNextId(),
+        userId:   userId,
+        dominant: dominant,
+        scores:   scores,
+        comment:  text,
+        likes:    0,
+        time:     new Date().toISOString()
+      };
+
+      posts.push(post);
+      savePosts(posts);
+
+      // clear textarea
+      document.getElementById('comment').value = '';
+
+      // show in "your reflections"
+      addMyPost(text);
+
+      // refresh feed
+      renderFeed();
+
+      // scroll feed to top to show new post
+      document.getElementById('feed-scroll').scrollTop = 0;
+    }
+
+    /* =========================
+       MY POSTS (left col history)
+    ========================= */
+
+    var myPostTexts = [];
+
+    function addMyPost(text) {
+      myPostTexts.push(text);
+      var wrap = document.getElementById('my-posts');
+      var list = document.getElementById('my-posts-list');
+
+      wrap.style.display = '';
+
+      var item = document.createElement('div');
+      item.className = 'my-post-item';
+      item.textContent = text;
+      list.appendChild(item);
+    }
+
+    /* =========================
+       INITIAL RENDER
+    ========================= */
+
+    renderFeed();
+
+  </script>
+
+</body>
+</html>

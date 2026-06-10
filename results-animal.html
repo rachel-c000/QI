@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spirit Animal</title>
+  <link rel="stylesheet" href="results-pages.css">
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&family=Fraunces:wght@700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #bff7ea;
+      font-family: 'Courier Prime', monospace;
+      color: #3d3228;
+    }
+
+    /* =========================
+       TWO-COLUMN LAYOUT
+    ========================= */
+
+    .page-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: calc(100vh - 60px);
+    }
+
+    /* =========================
+       LEFT COLUMN
+    ========================= */
+
+    .col-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 60px 60px 80px;
+      gap: 24px;
+    }
+
+    .animal-label {
+      font-size: 13px;
+      opacity: 0.6;
+      letter-spacing: 0.08em;
+      text-transform: lowercase;
+    }
+
+    .animal-img {
+      width: 100%;
+      max-width: 360px;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .animal-name {
+      font-family: 'Fraunces', serif;
+      font-size: 52px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .animal-desc {
+      font-size: 14px;
+      line-height: 1.7;
+      max-width: 380px;
+    }
+
+    /* =========================
+       RIGHT COLUMN
+    ========================= */
+
+    .col-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 80px 60px 60px;
+      gap: 32px;
+      border-left: 1px solid rgba(61,50,40,0.15);
+    }
+
+    /* emotion combo header */
+    .emotion-combo {
+      font-size: 13px;
+      opacity: 0.55;
+      letter-spacing: 0.04em;
+    }
+
+    /* mahjong tiles row */
+    .tiles-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .tile-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tile-wrap img {
+      width: 72px;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .tile-label {
+      font-size: 11px;
+      opacity: 0.55;
+      text-align: center;
+    }
+
+    /* emotion explanation */
+    .emotion-explain {
+      font-size: 13px;
+      line-height: 1.7;
+      max-width: 380px;
+    }
+
+    /* divider */
+    .divider {
+      width: 40px;
+      height: 1px;
+      background: rgba(61,50,40,0.25);
+    }
+
+    /* zodiac years */
+    .years-label {
+      font-size: 11px;
+      opacity: 0.5;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .years-list {
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    /* tags */
+    .animal-tags {
+      font-size: 13px;
+      opacity: 0.55;
+      letter-spacing: 0.02em;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <a href="results-mindscape.html"><h4>mindscape</h4></a>
+    <a href="results-animal.html" class="active"><h4>animal</h4></a>
+    <a href="results-music.html"><h4>music</h4></a>
+    <a href="results-reflect.html"><h4>reflect</h4></a>
+  </nav>
+
+  <div class="page-body">
+
+    <!-- LEFT COLUMN -->
+    <div class="col-left">
+      <div class="animal-label">your spirit animal</div>
+      <img id="animal-img" class="animal-img" src="" alt="" />
+      <div class="animal-name" id="animal-name"></div>
+      <div class="animal-desc" id="animal-desc"></div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="col-right">
+
+      <!-- emotion combo -->
+      <div class="emotion-combo" id="emotion-combo"></div>
+
+      <!-- mahjong tiles -->
+      <div class="tiles-row" id="tiles-row"></div>
+
+      <!-- why these emotions -->
+      <div class="emotion-explain" id="emotion-explain"></div>
+
+      <div class="divider"></div>
+
+      <!-- zodiac years -->
+      <div>
+        <div class="years-label">years of the <span id="years-animal-name"></span></div>
+        <div class="years-list" id="years-list"></div>
+      </div>
+
+      <!-- tags -->
+      <div class="animal-tags" id="animal-tags"></div>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    /* =========================
+       EMOTION → MAHJONG TILE
+    ========================= */
+
+    var emotionTiles = {
+      happy:    { img: "images/happy-mahjong.png",    label: "happy" },
+      sad:      { img: "images/sad-mahjong.png",      label: "sad" },
+      angry:    { img: "images/angry-mahjong.png",    label: "angry" },
+      peace:    { img: "images/peace-mahjong.png",    label: "peace" },
+      love:     { img: "images/love-mahjong.png",     label: "love" },
+      confused: { img: "images/confused-mahjong.png", label: "confused" },
+      fear:     { img: "images/fear-mahjong.png",     label: "fear" },
+      disgust:  { img: "images/disgust-mahjong.png",  label: "disgust" }
+    };
+
+    /* =========================
+       ANIMAL DATABASE
+    ========================= */
+
+    var animals = {
+
+      "happy-love-peace": {
+        name: "dog",
+        img: "images/dog.png",
+        desc: "You are loyal, warm, and deeply devoted. Your heart is open and your presence brings comfort to those around you.",
+        emotionExplain: "Your warmth and love anchor you. Happiness flows from connection, peace keeps you steady, and love is the force you move by. The dog lives by these same bonds.",
+        years: "1922 · 1934 · 1946 · 1958 · 1970 · 1982 · 1994 · 2006 · 2018 · 2030",
+        tags: "#loyal #devoted #warm"
+      },
+
+      "fear-sad-confused": {
+        name: "rabbit",
+        img: "images/rabbit.png",
+        desc: "You are gentle and perceptive, sensing the world with quiet sensitivity. Your softness is a form of strength.",
+        emotionExplain: "Fear, sadness, and confusion speak to a tender inner world — one that feels deeply and proceeds carefully. The rabbit holds this same watchful grace.",
+        years: "1915 · 1927 · 1939 · 1951 · 1963 · 1975 · 1987 · 1999 · 2011 · 2023",
+        tags: "#gentle #perceptive #sensitive"
+      },
+
+      "angry-disgust-fear": {
+        name: "rat",
+        img: "animals/rat.png",
+        desc: "You are sharp-minded and resourceful, turning difficult conditions into opportunity through wit and adaptability.",
+        emotionExplain: "Anger, disgust, and fear are survival emotions — they sharpen instincts and force adaptation. The rat has always thrived where others cannot, using tension as fuel.",
+        years: "1912 · 1924 · 1936 · 1948 · 1960 · 1972 · 1984 · 1996 · 2008 · 2020",
+        tags: "#resourceful #clever #adaptive"
+      },
+
+      "disgust-fear-sad": {
+        name: "snake",
+        img: "images/snake.png",
+        desc: "You move through the world with quiet wisdom and intuition. You shed what no longer serves you without hesitation.",
+        emotionExplain: "Disgust, fear, and sadness are the emotions of a person who has felt the weight of things. The snake sheds its skin not from weakness but from the wisdom to let go.",
+        years: "1917 · 1929 · 1941 · 1953 · 1965 · 1977 · 1989 · 2001 · 2013 · 2025",
+        tags: "#intuitive #wise #transformative"
+      },
+
+      "angry-happy-love": {
+        name: "rooster",
+        img: "animals/rooster.png",
+        desc: "You are bold and expressive, speaking your truth with conviction. You call others toward clarity and light.",
+        emotionExplain: "Anger, happiness, and love together create someone who feels loudly and acts with force. The rooster does not hold back — it announces the day.",
+        years: "1921 · 1933 · 1945 · 1957 · 1969 · 1981 · 1993 · 2005 · 2017 · 2029",
+        tags: "#bold #expressive #confident"
+      },
+
+      "peace-love-sad": {
+        name: "goat",
+        img: "images/goat.png",
+        desc: "You endure gently with patience and quiet strength, finding beauty in stillness and the steady rhythm of days.",
+        emotionExplain: "Peace, love, and sadness blend into a quiet tenderness — someone who feels the bittersweet texture of life. The goat moves slowly, but always forward.",
+        years: "1919 · 1931 · 1943 · 1955 · 1967 · 1979 · 1991 · 2003 · 2015 · 2027",
+        tags: "#enduring #steady #calm"
+      },
+
+      "confused-happy-peace": {
+        name: "monkey",
+        img: "animals/monkey.png",
+        desc: "You are curious, inventive, and quick — always seeking, always questioning, finding delight in the unexpected.",
+        emotionExplain: "Confusion alongside happiness and peace describes someone who wanders with joy. The monkey plays in the unknown and turns every puzzle into an adventure.",
+        years: "1920 · 1932 · 1944 · 1956 · 1968 · 1980 · 1992 · 2004 · 2016 · 2028",
+        tags: "#curious #inventive #playful"
+      },
+
+      "love-peace-sad": {
+        name: "pig",
+        img: "images/pig.png",
+        desc: "You carry a generous and contented spirit. You find joy in simple things and offer warmth without condition.",
+        emotionExplain: "Love, peace, and sadness reveal a heart that gives freely and feels fully. The pig is the most generous of all signs — open, unhurried, and sincere.",
+        years: "1923 · 1935 · 1947 · 1959 · 1971 · 1983 · 1995 · 2007 · 2019 · 2031",
+        tags: "#generous #joyful #sincere"
+      },
+
+      "angry-happy-peace": {
+        name: "dragon",
+        img: "images/dragon.png",
+        desc: "You are spirited and magnetic, carrying a fire that draws others in. Your presence commands attention and inspires awe.",
+        emotionExplain: "Anger, happiness, and peace in one body create contradiction — and contradiction creates power. The dragon holds opposites within itself and burns brighter for it.",
+        years: "1916 · 1928 · 1940 · 1952 · 1964 · 1976 · 1988 · 2000 · 2012 · 2024",
+        tags: "#spirited #magnetic #powerful"
+      },
+
+      "angry-fear-sad": {
+        name: "tiger",
+        img: "images/tiger.png",
+        desc: "You are fierce and courageous, meeting the world with intensity. Beneath your strength lies a deep and restless heart.",
+        emotionExplain: "Anger, fear, and sadness point to someone living with high stakes — someone who feels the world as raw and real. The tiger does not flinch; it moves through the storm.",
+        years: "1914 · 1926 · 1938 · 1950 · 1962 · 1974 · 1986 · 1998 · 2010 · 2022",
+        tags: "#fierce #courageous #intense"
+      },
+
+      "happy-peace-sad": {
+        name: "horse",
+        img: "images/horse.png",
+        desc: "You are free-spirited and tireless, always moving toward something greater. You carry others with you as you go.",
+        emotionExplain: "Happiness, peace, and sadness together trace someone who knows both arrival and longing. The horse is always in motion — chasing the horizon even when it aches.",
+        years: "1918 · 1930 · 1942 · 1954 · 1966 · 1978 · 1990 · 2002 · 2014 · 2026",
+        tags: "#free #spirited #energetic"
+      },
+
+      "angry-disgust-peace": {
+        name: "ox",
+        img: "images/ox.png",
+        desc: "You are steadfast and dependable, carrying great weight with quiet dignity. Your strength is earned through patience.",
+        emotionExplain: "Anger and disgust met with peace suggest someone who absorbs difficulty without breaking. The ox endures not by ignoring hardship but by standing firm within it.",
+        years: "1913 · 1925 · 1937 · 1949 · 1961 · 1973 · 1985 · 1997 · 2009 · 2021",
+        tags: "#steadfast #diligent #grounded"
+      }
+
+    };
+
+    var fallback = {
+      name: "dragon",
+      img: "images/dragon.png",
+      desc: "You are spirited and magnetic, carrying a fire that draws others in. Your presence commands attention and inspires awe.",
+      emotionExplain: "The dragon holds contradictions — power and stillness, fire and calm. Whatever your emotional makeup today, you carry an energy that moves others.",
+      years: "1916 · 1928 · 1940 · 1952 · 1964 · 1976 · 1988 · 2000 · 2012 · 2024",
+      tags: "#spirited #magnetic #powerful"
+    };
+
+    /* =========================
+       LOAD + COMPUTE
+    ========================= */
+
+    var keys = ['happy','sad','angry','peace','love','confused','fear','disgust'];
+    var scores = {};
+    keys.forEach(k => { scores[k] = parseInt(sessionStorage.getItem(k)) || 0; });
+
+    var top3 = [...keys].sort((a,b) => scores[b] - scores[a]).slice(0,3);
+    var comboKey = [...top3].sort().join('-');
+
+    var animal = animals[comboKey] || fallback;
+
+    /* =========================
+       RENDER LEFT COLUMN
+    ========================= */
+
+    document.getElementById("animal-img").src   = animal.img;
+    document.getElementById("animal-name").textContent = animal.name;
+    document.getElementById("animal-desc").textContent = animal.desc;
+
+    /* =========================
+       RENDER RIGHT COLUMN
+    ========================= */
+
+    // emotion combo header
+    document.getElementById("emotion-combo").textContent = top3.join(" + ");
+
+    // mahjong tiles
+    var tilesRow = document.getElementById("tiles-row");
+    top3.forEach(function(emotion) {
+      var t = emotionTiles[emotion];
+      if (!t) return;
+      var wrap = document.createElement("div");
+      wrap.className = "tile-wrap";
+      wrap.innerHTML = `
+        <img src="${t.img}" alt="${t.label}" />
+        <div class="tile-label">${t.label}</div>
+      `;
+      tilesRow.appendChild(wrap);
+    });
+
+    // emotion explanation
+    document.getElementById("emotion-explain").textContent = animal.emotionExplain;
+
+    // years
+    document.getElementById("years-animal-name").textContent = animal.name;
+    document.getElementById("years-list").textContent = animal.years;
+
+    // tags
+    document.getElementById("animal-tags").textContent = animal.tags;
+
+  </script>
+
+</body>
+</html>
