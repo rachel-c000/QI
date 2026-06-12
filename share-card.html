@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Qi Card</title>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&family=Fraunces:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Courier Prime', monospace;
+      background: #1a1410;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      gap: 20px;
+      color: #3d3228;
+    }
+    #card {
+      width: min(340px, 90vw);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      font-size: 12px;
+      border: 1px solid rgba(61,50,40,0.2);
+    }
+    .c-header { display:flex; align-items:center; gap:8px; }
+    .c-dot { width:22px; height:22px; border-radius:50%; flex-shrink:0; }
+    .c-id { font-family:'Fraunces',serif; font-size:14px; font-weight:700; }
+    .c-qi { margin-left:auto; opacity:0.4; font-size:12px; }
+    .c-dom .lbl { font-size:9px; opacity:0.5; text-transform:uppercase; letter-spacing:.08em; display:block; margin-bottom:2px; }
+    .c-dom .val { font-family:'Fraunces',serif; font-size:22px; font-weight:700; line-height:1; }
+    .c-tiles { display:flex; gap:6px; flex-wrap:wrap; }
+    .c-chip { font-size:9px; padding:3px 7px; border:1px solid rgba(61,50,40,0.3); border-radius:20px; opacity:0.8; }
+    .c-animal { display:flex; align-items:center; gap:10px; }
+    .c-animal img { width:40px; height:40px; object-fit:contain; }
+    .c-animal .name { font-family:'Fraunces',serif; font-size:14px; font-weight:700; display:block; }
+    .c-animal .desc { font-size:9.5px; line-height:1.5; opacity:0.7; display:block; max-width:200px; }
+    .c-section { border-top:1px solid rgba(61,50,40,0.12); padding-top:8px; }
+    .c-section .lbl { font-size:9px; opacity:0.5; text-transform:uppercase; letter-spacing:.08em; display:block; margin-bottom:4px; }
+    .c-track { font-size:9.5px; opacity:0.75; line-height:1.6; }
+    .c-ref { font-size:9.5px; opacity:0.75; line-height:1.6; font-style:italic; }
+    .c-foot { display:flex; justify-content:space-between; margin-top:4px; }
+    .c-foot span { font-size:8px; opacity:0.35; }
+
+    #status {
+      color: rgba(250,247,240,0.7);
+      font-size: 12px;
+      text-align: center;
+      max-width: 320px;
+      line-height: 1.6;
+    }
+    #dl-btn {
+      background: rgba(250,247,240,0.1);
+      border: 1px solid rgba(250,247,240,0.3);
+      color: #faf7f0;
+      font-family: 'Courier Prime', monospace;
+      font-size: 12px;
+      padding: 10px 24px;
+      cursor: pointer;
+      border-radius: 24px;
+      transition: background 0.15s;
+      display: none;
+    }
+    #dl-btn:hover { background: rgba(250,247,240,0.18); }
+  </style>
+</head>
+<body>
+
+  <div id="card">
+    <div class="c-header">
+      <div class="c-dot" id="cdot"></div>
+      <div class="c-id" id="cid"></div>
+      <div class="c-qi">氣(qi)</div>
+    </div>
+    <div class="c-dom">
+      <span class="lbl">your dominant feeling</span>
+      <span class="val" id="cdom"></span>
+    </div>
+    <div class="c-tiles" id="ctiles"></div>
+    <div class="c-animal">
+      <img id="caimg" src="" alt="" />
+      <div>
+        <span class="name" id="caname"></span>
+        <span class="desc" id="cadesc"></span>
+      </div>
+    </div>
+    <div class="c-section" id="cplaylist" style="display:none">
+      <span class="lbl">playlist</span>
+      <div id="ctracks"></div>
+    </div>
+    <div class="c-section" id="cref-section" style="display:none">
+      <span class="lbl">reflection</span>
+      <div class="c-ref" id="cref"></div>
+    </div>
+    <div class="c-foot">
+      <span id="cdate"></span>
+      <span>qi installation</span>
+    </div>
+  </div>
+
+  <div id="status">preparing your card…</div>
+  <button id="dl-btn" onclick="doDownload()">↓ save image</button>
+
+  <script>
+    var colorMap = {
+      happy:'#FFD71E', sad:'#2264DC', angry:'#E8251A',
+      peace:'#50D2A0', love:'#FF64A0', confused:'#A050DC',
+      fear:'#3d1a6e', disgust:'#6E8C32'
+    };
+    var bgMap = {
+      happy:'#f5f0d8', sad:'#d8e4f5', angry:'#f5dbd8',
+      peace:'#c8f0e4', love:'#f5d8e8', confused:'#ede0f5',
+      fear:'#ddd8f5', disgust:'#dff0d8'
+    };
+
+    var p = new URLSearchParams(window.location.search);
+    var dominant = p.get('dominant') || 'peace';
+    var top3     = (p.get('top3') || '').split(',').filter(Boolean);
+    var uid      = p.get('uid') || '1';
+    var animal   = { name: p.get('animal')||'', desc: p.get('adesc')||'', img: p.get('aimg')||'' };
+    var tracksRaw = (p.get('tracks') || '').split(';;').filter(Boolean).map(function(s){
+      var parts = s.split('|'); return { title: parts[0]||'', artist: parts[1]||'' };
+    });
+    var reflection = p.get('ref') || '';
+
+    /* render card */
+    var card = document.getElementById('card');
+    card.style.background = bgMap[dominant] || '#f5f0d8';
+
+    document.getElementById('cdot').style.background = colorMap[dominant];
+    document.getElementById('cid').textContent  = 'No.' + uid;
+    document.getElementById('cdom').textContent = dominant;
+
+    var tilesEl = document.getElementById('ctiles');
+    top3.forEach(function(e) {
+      var chip = document.createElement('span');
+      chip.className = 'c-chip';
+      chip.textContent = e;
+      chip.style.borderColor = colorMap[e] || '#aaa';
+      tilesEl.appendChild(chip);
+    });
+
+    document.getElementById('caimg').src = animal.img;
+    document.getElementById('caname').textContent = animal.name;
+    document.getElementById('cadesc').textContent = animal.desc;
+
+    if (tracksRaw.length) {
+      document.getElementById('cplaylist').style.display = '';
+      var tracksEl = document.getElementById('ctracks');
+      tracksRaw.slice(0,5).forEach(function(t, i) {
+        var d = document.createElement('div');
+        d.className = 'c-track';
+        d.textContent = (i+1) + '. ' + t.title + (t.artist ? ' — ' + t.artist : '');
+        tracksEl.appendChild(d);
+      });
+    }
+
+    if (reflection) {
+      document.getElementById('cref-section').style.display = '';
+      document.getElementById('cref').textContent = '"' + reflection + '"';
+    }
+
+    var d = new Date();
+    document.getElementById('cdate').textContent =
+      d.toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' });
+
+    /* auto-generate image after fonts load */
+    var _canvas;
+    document.fonts.ready.then(function() {
+      html2canvas(card, { scale: 3, useCORS: true, backgroundColor: null, logging: false })
+        .then(function(c) {
+          _canvas = c;
+          document.getElementById('status').textContent = 'your card is ready';
+          var btn = document.getElementById('dl-btn');
+          btn.style.display = 'inline-block';
+          /* on mobile, auto-trigger may not work — button is fallback */
+          try { doDownload(); } catch(e) {}
+        })
+        .catch(function() {
+          document.getElementById('status').textContent = 'tap the button to save your card';
+          document.getElementById('dl-btn').style.display = 'inline-block';
+        });
+    });
+
+    function doDownload() {
+      if (!_canvas) return;
+      var link = document.createElement('a');
+      link.download = 'qi-card-no' + uid + '.png';
+      link.href = _canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>

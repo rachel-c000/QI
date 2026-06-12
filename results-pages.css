@@ -572,3 +572,334 @@ textarea::placeholder {
   border-radius: 50%;
   flex-shrink: 0;
 }
+
+.nav-print-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  color: #3d3228;
+  margin-left: auto;  /* pushes it to the far right */
+}
+
+.nav-print-btn svg {
+  width: 18px;
+  height: 18px;
+  display: block;     /* prevents inline svg baseline gap */
+}
+
+ /* ── nav print button ── */
+    .nav-print-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      opacity: 0.55;
+      transition: opacity 0.2s;
+      display: flex;
+      align-items: center;
+      color: #3d3228;
+      margin-left: auto;
+    }
+    .nav-print-btn:hover { opacity: 1; }
+    .nav-print-btn svg { width: 18px; height: 18px; }
+
+    /* ── modal backdrop ── */
+    .qi-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(30, 22, 14, 0.55);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .qi-modal-backdrop.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ── modal box ── */
+    .qi-modal {
+      background: #faf7f0;
+      border: 1px solid rgba(61,50,40,0.18);
+      width: min(92vw, 560px);
+      max-height: 90vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      transform: translateY(12px);
+      transition: transform 0.25s ease;
+    }
+    .qi-modal-backdrop.open .qi-modal { transform: translateY(0); }
+
+    .qi-modal-header {
+      padding: 20px 24px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(61,50,40,0.1);
+    }
+    .qi-modal-header h3 {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0;
+      color: #3d3228;
+    }
+    .qi-modal-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      color: #3d3228;
+      opacity: 0.5;
+      padding: 0 4px;
+      line-height: 1;
+      transition: opacity 0.15s;
+    }
+    .qi-modal-close:hover { opacity: 1; }
+
+    /* ── two-col layout inside modal ── */
+    .qi-modal-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    /* ── left: card preview ── */
+    .qi-card-preview {
+      padding: 20px;
+      border-right: 1px solid rgba(61,50,40,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .qi-card-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.45;
+      color: #3d3228;
+    }
+
+    /* ── the actual summary card (what gets screenshotted) ── */
+    #qi-summary-card {
+      width: 100%;
+      background: #c8f0e4; /* overridden by JS */
+      border: 1px solid rgba(61,50,40,0.15);
+      padding: 18px;
+      font-family: 'Courier Prime', monospace;
+      color: #3d3228;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-size: 11px;
+      position: relative;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-dot {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .card-id {
+      font-family: 'Fraunces', serif;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .card-qi-mark {
+      margin-left: auto;
+      font-size: 13px;
+      opacity: 0.4;
+    }
+
+    .card-dominant {
+      line-height: 1;
+    }
+    .card-dominant span.label {
+      font-size: 9px;
+      opacity: 0.5;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .card-dominant span.value {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .card-tiles {
+      display: flex;
+      gap: 6px;
+    }
+    .card-tile-chip {
+      font-size: 9px;
+      padding: 3px 7px;
+      border: 1px solid rgba(61,50,40,0.3);
+      border-radius: 20px;
+      opacity: 0.8;
+    }
+
+    .card-animal {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-animal img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
+    .card-animal-info span.name {
+      font-family: 'Fraunces', serif;
+      font-size: 13px;
+      font-weight: 700;
+      display: block;
+    }
+    .card-animal-info span.desc {
+      font-size: 9.5px;
+      line-height: 1.5;
+      opacity: 0.7;
+      display: block;
+      max-width: 160px;
+    }
+
+    .card-playlist {
+      border-top: 1px solid rgba(61,50,40,0.12);
+      padding-top: 8px;
+    }
+    .card-playlist span.label {
+      font-size: 9px;
+      opacity: 0.5;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .card-track {
+      font-size: 9.5px;
+      opacity: 0.75;
+      line-height: 1.6;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-reflection {
+      border-top: 1px solid rgba(61,50,40,0.12);
+      padding-top: 8px;
+    }
+    .card-reflection span.label {
+      font-size: 9px;
+      opacity: 0.5;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .card-reflection-text {
+      font-size: 9.5px;
+      line-height: 1.6;
+      opacity: 0.75;
+      font-style: italic;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 4px;
+    }
+    .card-date {
+      font-size: 8.5px;
+      opacity: 0.35;
+    }
+    .card-watermark {
+      font-size: 8.5px;
+      opacity: 0.3;
+      font-family: 'Fraunces', serif;
+    }
+
+    /* download btn below card */
+    .qi-download-btn {
+      background: none;
+      border: 1px solid rgba(61,50,40,0.35);
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      color: #3d3228;
+      padding: 7px 14px;
+      cursor: pointer;
+      border-radius: 20px;
+      transition: background 0.15s;
+      align-self: flex-start;
+    }
+    .qi-download-btn:hover { background: rgba(61,50,40,0.07); }
+
+    /* ── right: QR section ── */
+    .qi-qr-section {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .qi-qr-title {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.45;
+      color: #3d3228;
+    }
+    .qi-qr-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    #qi-qr-canvas {
+      width: 140px;
+      height: 140px;
+      image-rendering: pixelated;
+    }
+    .qi-qr-hint {
+      font-size: 10px;
+      line-height: 1.6;
+      opacity: 0.55;
+      text-align: center;
+      color: #3d3228;
+      max-width: 160px;
+    }
+    .qi-share-url {
+      font-size: 9px;
+      opacity: 0.35;
+      text-align: center;
+      word-break: break-all;
+      color: #3d3228;
+      max-width: 170px;
+    }
+
+    /* ── mobile responsive ── */
+    @media (max-width: 540px) {
+      .qi-modal-body { grid-template-columns: 1fr; }
+      .qi-card-preview { border-right: none; border-bottom: 1px solid rgba(61,50,40,0.1); }
+    }

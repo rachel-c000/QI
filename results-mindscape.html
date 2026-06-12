@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700&family=Courier+Prime&family=Fraunces:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="results-pages.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -22,6 +24,14 @@
       <a href="results-animal.html"><h4>animal</h4></a>
       <a href="results-music.html"><h4>music</h4></a>
       <a href="results-reflect.html"><h4>reflect</h4></a>
+       <button class="nav-print-btn" id="qi-print-btn" title="Save your Qi card" onclick="openQiModal()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 9V3h12v6"/>
+      <rect x="3" y="9" width="18" height="10" rx="1"/>
+      <path d="M6 14h12M9 18h6"/>
+      <circle cx="18" cy="13" r="1" fill="currentColor"/>
+    </svg>
+  </button>
     </nav>
 
     <div class="page-title">
@@ -38,6 +48,81 @@
       <div class="dominant-word" id="dominant-word"></div>
     </div>
   </div>
+
+<div class="qi-modal-backdrop" id="qi-modal-backdrop" onclick="handleBackdropClick(event)">
+  <div class="qi-modal" role="dialog" aria-label="Save your Qi card">
+
+    <div class="qi-modal-header">
+      <h3>your qi card</h3>
+      <button class="qi-modal-close" onclick="closeQiModal()" aria-label="Close">✕</button>
+    </div>
+
+    <div class="qi-modal-body">
+
+      <!-- LEFT: summary card preview -->
+      <div class="qi-card-preview">
+        <div class="qi-card-label">summary card</div>
+
+        <!-- THIS ELEMENT IS SCREENSHOTTED BY html2canvas -->
+        <div id="qi-summary-card">
+
+          <div class="card-header">
+            <div class="card-dot" id="card-dot"></div>
+            <div class="card-id" id="card-id"></div>
+            <div class="card-qi-mark">氣(qi)</div>
+          </div>
+
+          <div class="card-dominant">
+            <span class="label">your dominant feeling</span>
+            <span class="value" id="card-dominant-value"></span>
+          </div>
+
+          <div class="card-tiles" id="card-tiles"></div>
+
+          <div class="card-animal">
+            <img id="card-animal-img" src="" alt="" />
+            <div class="card-animal-info">
+              <span class="name" id="card-animal-name"></span>
+              <span class="desc" id="card-animal-desc"></span>
+            </div>
+          </div>
+
+          <div class="card-playlist" id="card-playlist-section">
+            <span class="label">playlist</span>
+            <div id="card-tracks"></div>
+          </div>
+
+          <div class="card-reflection" id="card-reflection-section" style="display:none">
+            <span class="label">reflection</span>
+            <div class="card-reflection-text" id="card-reflection-text"></div>
+          </div>
+
+          <div class="card-footer">
+            <div class="card-date" id="card-date"></div>
+            <div class="card-watermark">qi installation</div>
+          </div>
+
+        </div>
+        <!-- END SUMMARY CARD -->
+
+        <button class="qi-download-btn" onclick="downloadCard()">↓ download image</button>
+      </div>
+
+      <!-- RIGHT: QR code -->
+      <div class="qi-qr-section">
+        <div class="qi-qr-title">scan to save</div>
+        <div class="qi-qr-box">
+          <div id="qi-qr-canvas"></div>
+          <p class="qi-qr-hint">
+            scan with your phone camera to download this card directly
+          </p>
+          <div class="qi-share-url" id="qi-share-url"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 
   <script>
     var keys = ['happy','sad','angry','peace','love','confused','fear','disgust'];
@@ -299,6 +384,208 @@ if (Math.abs(rotation) < 10) rotation += rotation < 0 ? -12 : 12;
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
+
+     var _qi_colors = typeof colors !== 'undefined' ? colors : {
+    happy:'#FFD71E', sad:'#2264DC', angry:'#E8251A',
+    peace:'#50D2A0', love:'#FF64A0', confused:'#A050DC',
+    fear:'#3d1a6e', disgust:'#6E8C32'
+  };
+  var _qi_bgMap = typeof bgMap !== 'undefined' ? bgMap : {
+    happy:'#f5f0d8', sad:'#d8e4f5', angry:'#f5dbd8',
+    peace:'#c8f0e4', love:'#f5d8e8', confused:'#ede0f5',
+    fear:'#ddd8f5', disgust:'#dff0d8'
+  };
+  var _qi_keys = ['happy','sad','angry','peace','love','confused','fear','disgust'];
+ 
+  var _qi_scores = {};
+  _qi_keys.forEach(function(k) {
+    _qi_scores[k] = parseInt(sessionStorage.getItem(k)) || 0;
+  });
+ 
+  var _qi_dominant = _qi_keys.reduce(function(a,b) {
+    return _qi_scores[a] >= _qi_scores[b] ? a : b;
+  });
+ 
+  var _qi_top3 = _qi_keys.slice().sort(function(a,b) {
+    return _qi_scores[b] - _qi_scores[a];
+  }).slice(0,3);
+ 
+  var _qi_userId = parseInt(sessionStorage.getItem('qi_user_id')) || 1;
+ 
+  var _qi_animal = {
+    name: sessionStorage.getItem('qi_animal_name') || '',
+    desc: sessionStorage.getItem('qi_animal_desc') || '',
+    img:  sessionStorage.getItem('qi_animal_img')  || ''
+  };
+ 
+  var _qi_tracks = [];
+  try { _qi_tracks = JSON.parse(sessionStorage.getItem('qi_tracks') || '[]'); } catch(e) {}
+ 
+  var _qi_reflection = sessionStorage.getItem('qi_reflection') || '';
+ 
+  function populateCard() {
+    var card = document.getElementById('qi-summary-card');
+    if (!card) return;
+    card.style.background = _qi_bgMap[_qi_dominant] || '#f5f0d8';
+ 
+    var dot = document.getElementById('card-dot');
+    if (dot) dot.style.background = _qi_colors[_qi_dominant];
+    var idEl = document.getElementById('card-id');
+    if (idEl) idEl.textContent = 'No.' + _qi_userId;
+ 
+    var domEl = document.getElementById('card-dominant-value');
+    if (domEl) domEl.textContent = _qi_dominant;
+ 
+    var tilesEl = document.getElementById('card-tiles');
+    if (tilesEl) {
+      tilesEl.innerHTML = '';
+      _qi_top3.forEach(function(e) {
+        var chip = document.createElement('span');
+        chip.className = 'card-tile-chip';
+        chip.textContent = e;
+        chip.style.borderColor = _qi_colors[e];
+        tilesEl.appendChild(chip);
+      });
+    }
+ 
+    var aImg  = document.getElementById('card-animal-img');
+    var aName = document.getElementById('card-animal-name');
+    var aDesc = document.getElementById('card-animal-desc');
+    if (aImg)  aImg.src = _qi_animal.img;
+    if (aName) aName.textContent = _qi_animal.name;
+    if (aDesc) aDesc.textContent = _qi_animal.desc;
+ 
+    var tracksEl = document.getElementById('card-tracks');
+    if (tracksEl) {
+      tracksEl.innerHTML = '';
+      var showTracks = _qi_tracks.slice(0, 5);
+      if (showTracks.length) {
+        showTracks.forEach(function(t, i) {
+          var div = document.createElement('div');
+          div.className = 'card-track';
+          div.textContent = (i+1) + '. ' + (t.title || t.name || t) + (t.artist ? ' — ' + t.artist : '');
+          tracksEl.appendChild(div);
+        });
+      } else {
+        var pl = document.getElementById('card-playlist-section');
+        if (pl) pl.style.display = 'none';
+      }
+    }
+ 
+    if (_qi_reflection) {
+      var refSection = document.getElementById('card-reflection-section');
+      var refText    = document.getElementById('card-reflection-text');
+      if (refSection) refSection.style.display = '';
+      if (refText)    refText.textContent = '"' + _qi_reflection + '"';
+    }
+ 
+    var dateEl = document.getElementById('card-date');
+    if (dateEl) {
+      var d = new Date();
+      dateEl.textContent = d.toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' });
+    }
+  }
+ 
+  function buildShareUrl() {
+    var base = window.location.origin + window.location.pathname
+      .replace(/\/[^/]*$/, '/share-card.html');
+    var params = new URLSearchParams();
+    params.set('uid',      _qi_userId);
+    params.set('dominant', _qi_dominant);
+    params.set('top3',     _qi_top3.join(','));
+    params.set('animal',   _qi_animal.name);
+    params.set('adesc',    _qi_animal.desc.slice(0, 120));
+    params.set('aimg',     _qi_animal.img);
+    if (_qi_tracks.length) {
+      var trackStr = _qi_tracks.slice(0,5).map(function(t) {
+        return (t.title || t.name || t) + (t.artist ? '|' + t.artist : '');
+      }).join(';;');
+      params.set('tracks', trackStr);
+    }
+    if (_qi_reflection) params.set('ref', _qi_reflection.slice(0, 200));
+    _qi_keys.forEach(function(k) { params.set(k, _qi_scores[k]); });
+    return base + '?' + params.toString();
+  }
+ 
+  var _qi_qr_generated = false;
+ 
+  function generateQR(url) {
+    if (_qi_qr_generated) return;
+    var canvas = document.getElementById('qi-qr-canvas');
+    if (!canvas || typeof QRCode === 'undefined') return;
+    try {
+      new QRCode(canvas, {
+        text: url, width: 140, height: 140,
+        colorDark: '#3d3228', colorLight: '#faf7f0',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+      _qi_qr_generated = true;
+    } catch(e) { console.warn('QR generation failed:', e); }
+    var urlEl = document.getElementById('qi-share-url');
+    if (urlEl) urlEl.textContent = url.length > 80 ? url.slice(0,77)+'…' : url;
+  }
+ 
+  function openQiModal() {
+    populateCard();
+    var url = buildShareUrl();
+    generateQR(url);
+    var backdrop = document.getElementById('qi-modal-backdrop');
+    if (backdrop) backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+ 
+  function closeQiModal() {
+    var backdrop = document.getElementById('qi-modal-backdrop');
+    if (backdrop) backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+ 
+  function handleBackdropClick(e) {
+    if (e.target === document.getElementById('qi-modal-backdrop')) closeQiModal();
+  }
+ 
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeQiModal();
+  });
+ 
+  function downloadCard() {
+    var card = document.getElementById('qi-summary-card');
+    if (!card || typeof html2canvas === 'undefined') {
+      alert('Download not available. Try scanning the QR code instead.');
+      return;
+    }
+    html2canvas(card, { scale: 2, useCORS: true, backgroundColor: null, logging: false })
+      .then(function(canvas) {
+        var link = document.createElement('a');
+        link.download = 'qi-card-no' + _qi_userId + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      })
+      .catch(function(err) {
+        console.error('html2canvas error:', err);
+        alert('Could not generate image. Try scanning the QR code instead.');
+      });
+  }
+ 
+  function qiPersistAnimal(a) {
+    if (!a) return;
+    sessionStorage.setItem('qi_animal_name', a.name || '');
+    sessionStorage.setItem('qi_animal_desc', a.desc || '');
+    sessionStorage.setItem('qi_animal_img',  a.img  || '');
+    _qi_animal = { name: a.name, desc: a.desc, img: a.img };
+  }
+ 
+  function qiPersistTracks(arr) {
+    if (!Array.isArray(arr)) return;
+    sessionStorage.setItem('qi_tracks', JSON.stringify(arr));
+    _qi_tracks = arr;
+  }
+ 
+  function qiPersistReflection(text) {
+    if (!text) return;
+    sessionStorage.setItem('qi_reflection', text);
+    _qi_reflection = text;
+  }
   </script>
 
 </body>
